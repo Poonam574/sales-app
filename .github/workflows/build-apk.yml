@@ -24,6 +24,17 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
+      - name: Pre-configure Bubblewrap (skip interactive prompts)
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat > ~/.bubblewrap/config.json << EOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
+          cat ~/.bubblewrap/config.json
+
       - name: Restore signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android.keystore
 
@@ -36,6 +47,9 @@ jobs:
             --skipPwaValidation \
             --password="$BUBBLEWRAP_KEYSTORE_PASSWORD" \
             --keyPassword="$BUBBLEWRAP_KEY_PASSWORD"
+
+      - name: Find APK
+        run: find . -name "*.apk" -type f -print
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
