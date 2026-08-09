@@ -43,7 +43,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          bubblewrap build \
+          yes n | bubblewrap build \
             --skipPwaValidation \
             --password="$BUBBLEWRAP_KEYSTORE_PASSWORD" \
             --keyPassword="$BUBBLEWRAP_KEY_PASSWORD"
