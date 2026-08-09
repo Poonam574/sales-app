@@ -44,7 +44,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          bubblewrap build --skipPwaValidation
+         echo "n" | bubblewrap build --skipPwaValidation
  
       - name: Find APK
         run: find . -name "*.apk" -type f -print
