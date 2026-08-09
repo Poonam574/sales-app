@@ -9,22 +9,25 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
- 
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
- 
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
- 
+
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
- 
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
- 
+
       - name: Pre-configure Bubblewrap (skip interactive prompts)
         run: |
           mkdir -p ~/.bubblewrap
@@ -35,25 +38,27 @@ jobs:
           }
           EOF
           cat ~/.bubblewrap/config.json
- 
+
       - name: Restore signing keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android.keystore
- 
-      - name: Build APK
+
+      - name: Build APK using Gradle
         env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-         echo "n" | bubblewrap build --skipPwaValidation
- 
-      - name: Find APK
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=android.keystore \
+            -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=key0 \
+            -Pandroid.injected.signing.key.password=$ANDROID_KEYSTORE_PASSWORD
+
+      - name: Find APK files
         run: find . -name "*.apk" -type f -print
- 
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: dealradar-apk
           path: |
-            app-release-signed.apk
-            app-release-unsigned-aligned.apk
+            app/build/outputs/apk/release/
           if-no-files-found: warn
