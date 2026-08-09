@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DealRadar — Smart Shopping Comparator</title>
+<meta name="description" content="Compare prices, ratings, discounts and delivery across Amazon, Flipkart, Croma, Myntra and Reliance Digital." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#FF5A1F" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="DealRadar" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  --bg:#EEF1F7;
+  --surface:#FFFFFF;
+  --surface-2:#F7F8FC;
+  --ink:#121629;
+  --ink-soft:#5B6478;
+  --ink-faint:#8890A3;
+  --line:#E3E7EF;
+  --line-strong:#CBD1DF;
+
+  --accent:#FF5A1F;
+  --accent-ink:#7A2E0A;
+  --accent-soft:#FFE7DA;
+
+  --teal:#0EA5A4;
+  --teal-soft:#DEF6F5;
+
+  --gold:#F5B400;
+  --danger:#E23744;
+  --danger-soft:#FDE8E9;
+
+  --amazon:#E27B0F;
+  --flipkart:#2874F0;
+  --myntra:#FF3F6C;
+  --croma:#0B6E6E;
+  --reliance:#C81E2C;
+  --meesho:#A7188C;
+
+  --radius-lg:18px;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow-sm:0 2px 8px rgba(18,22,41,.06);
+  --shadow-md:0 10px 28px rgba(18,22,41,.10);
+  --shadow-lg:0 20px 48px rgba(18,22,41,.18);
+
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Inter', sans-serif;
+}
+
+/* ============================================================
+   DARK MODE (token overrides — everything below already
+   consumes these as var(...), so this is the only override needed)
+   ============================================================ */
+[data-theme="dark"]{
+  --bg:#0F1220;
+  --surface:#171B2C;
+  --surface-2:#1E2336;
+  --ink:#EDEFF7;
+  --ink-soft:#AEB4C7;
+  --ink-faint:#7C839B;
+  --line:#2A3049;
+  --line-strong:#3A4160;
+
+  --accent-soft:#3A2416;
+  --teal-soft:#0F2E2D;
+  --danger-soft:#3A1418;
+}
+[data-theme="dark"] body{
+  background:
+    radial-gradient(1100px 480px at 90% -10%, #1B2140 0%, transparent 60%),
+    var(--bg);
+}
+[data-theme="dark"] .topbar{ background:rgba(15,18,32,.86); }
+[data-theme="dark"] .empty-state button{ color:var(--ink); }
+[data-theme="dark"] .gauge > div{ background:#0B0E1A; }
+
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  background:
+    radial-gradient(1100px 480px at 90% -10%, #E6ECFB 0%, transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0; letter-spacing:-0.01em;}
+p{margin:0;}
+button{font-family:inherit; cursor:pointer;}
+input,select{font-family:inherit;}
+a{color:inherit;}
+::selection{background:var(--accent-soft); color:var(--accent-ink);}
+:focus-visible{outline:2.5px solid var(--accent); outline-offset:2px; border-radius:6px;}
+
+.tabular{font-variant-numeric: tabular-nums;}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  background:rgba(255,255,255,.86);
+  backdrop-filter:blur(14px) saturate(160%);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:1360px; margin:0 auto; padding:14px 24px;
+  display:flex; align-items:center; gap:18px;
+}
+.brand{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+.brand-mark{
+  width:34px; height:34px; border-radius:10px;
+  background:conic-gradient(from -40deg, var(--accent), var(--gold), var(--teal), var(--accent));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: inset 0 0 0 3px var(--surface), var(--shadow-sm);
+}
+.brand-mark::after{content:"◎"; color:#fff; font-size:16px; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.25);}
+.brand-name{font-family:var(--font-display); font-weight:700; font-size:19px; line-height:1;}
+.brand-name small{display:block; font-family:var(--font-body); font-weight:500; font-size:10.5px; letter-spacing:.09em; color:var(--ink-faint); text-transform:uppercase; margin-top:3px;}
+
+.search-wrap{flex:1; position:relative; max-width:640px;}
+.search-wrap input{
+  width:100%; padding:11px 16px 11px 42px; border-radius:999px;
+  border:1.5px solid var(--line); background:var(--surface-2);
+  font-size:14.5px; color:var(--ink); transition:.15s;
+}
+.search-wrap input:focus{background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+.search-wrap svg{position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--ink-faint); width:16px; height:16px;}
+.search-clear{position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:none; color:var(--ink-faint); width:26px; height:26px; border-radius:50%; display:none; align-items:center; justify-content:center;}
+.search-clear:hover{background:var(--line);}
+.search-suggest{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow-md); z-index:45; overflow:hidden; display:none;
+}
+.search-suggest.open{display:block;}
+.search-suggest .ss-head{display:flex; align-items:center; justify-content:space-between; padding:9px 14px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); border-bottom:1px solid var(--line);}
+.search-suggest .ss-head button{border:none; background:none; color:var(--ink-faint); font-size:11.5px; font-weight:600; text-transform:none; letter-spacing:0;}
+.search-suggest .ss-head button:hover{color:var(--danger);}
+.search-suggest .ss-item{padding:9px 14px; font-size:13px; color:var(--ink-soft); cursor:pointer;}
+.search-suggest .ss-item:hover{background:var(--surface-2); color:var(--ink);}
+
+.top-actions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+.icon-btn{
+  position:relative; display:flex; align-items:center; gap:7px;
+  border:1.5px solid var(--line); background:var(--surface);
+  padding:9px 14px; border-radius:999px; font-size:13.5px; font-weight:600; color:var(--ink);
+  transition:.15s;
+}
+.icon-btn:hover{border-color:var(--line-strong); background:var(--surface-2);}
+.icon-btn svg{width:16px; height:16px;}
+.icon-btn .count{
+  background:var(--accent); color:#fff; font-size:11px; font-weight:700;
+  min-width:18px; height:18px; border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 5px;
+}
+.icon-btn.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink);}
+.filters-toggle{display:none;}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.layout{max-width:1360px; margin:0 auto; padding:22px 24px 80px; display:grid; grid-template-columns:264px 1fr; gap:26px; align-items:start;}
+
+/* FILTERS SIDEBAR */
+.filters{
+  position:sticky; top:82px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:18px; box-shadow:var(--shadow-sm);
+  max-height:calc(100vh - 100px); overflow-y:auto;
+}
+.filters-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.filters-head h3{font-size:15px;}
+.clear-filters{border:none; background:none; color:var(--accent); font-size:12.5px; font-weight:700;}
+.clear-filters:hover{text-decoration:underline;}
+.filter-group{padding:14px 0; border-top:1px solid var(--line);}
+.filter-group:first-child{border-top:none; padding-top:0;}
+.filter-group > .fg-label{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-faint); margin-bottom:10px; display:block;}
+.chip-row{display:flex; flex-wrap:wrap; gap:7px;}
+.chip{
+  border:1.5px solid var(--line); background:var(--surface-2); border-radius:999px;
+  padding:6px 12px; font-size:12.5px; font-weight:600; color:var(--ink-soft); display:flex; align-items:center; gap:6px;
+}
+.chip .dot{width:8px; height:8px; border-radius:50%;}
+.chip:hover{border-color:var(--line-strong);}
+.chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}
+.check-row{display:flex; align-items:center; gap:9px; padding:5px 0; font-size:13.5px; color:var(--ink-soft); cursor:pointer;}
+.check-row input{accent-color:var(--accent); width:15px; height:15px;}
+.check-row:hover{color:var(--ink);}
+.price-inputs{display:flex; align-items:center; gap:8px;}
+.price-inputs input{width:100%; padding:8px 9px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:13px;}
+.price-inputs span{color:var(--ink-faint); font-size:12px;}
+.rating-btns{display:flex; gap:6px;}
+.rating-btns button{flex:1; border:1.5px solid var(--line); background:var(--surface-2); border-radius:var(--radius-sm); padding:7px 0; font-size:12.5px; font-weight:700; color:var(--ink-soft);}
+.rating-btns button.active{background:var(--gold); border-color:var(--gold); color:#3a2a00;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between;}
+.switch{position:relative; width:38px; height:22px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.switch .track{position:absolute; inset:0; background:var(--line-strong); border-radius:999px; transition:.15s;}
+.switch .track::after{content:""; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.15s; box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.switch input:checked + .track{background:var(--teal);}
+.switch input:checked + .track::after{transform:translateX(16px);}
+
+/* ============================================================
+   BEST OVERALL BANNER
+   ============================================================ */
+.banner{
+  position:relative; overflow:hidden;
+  background:linear-gradient(120deg, #171B2E 0%, #232A47 60%, #2B2140 100%);
+  border-radius:var(--radius-lg); padding:26px 28px; margin-bottom:22px;
+  display:flex; align-items:center; gap:26px; color:#fff; box-shadow:var(--shadow-md);
+}
+.banner::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(420px 220px at 88% 15%, rgba(255,90,31,.35), transparent 70%);
+  pointer-events:none;
+}
+.banner-icon{
+  width:82px; height:82px; border-radius:16px; background:rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center; font-size:38px; flex-shrink:0;
+  border:1px solid rgba(255,255,255,.14);
+}
+.banner-body{flex:1; min-width:0;}
+.eyebrow{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:#FFC49B; margin-bottom:8px;}
+.eyebrow::before{content:"◎"; font-size:13px;}
+.banner-body h2{font-size:22px; color:#fff; margin-bottom:6px;}
+.banner-sub{font-size:13.5px; color:rgba(255,255,255,.7); margin-bottom:12px;}
+.banner-facts{display:flex; flex-wrap:wrap; gap:18px;}
+.bf{display:flex; flex-direction:column; gap:2px;}
+.bf .l{font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:rgba(255,255,255,.5);}
+.bf .v{font-size:15px; font-weight:700; font-family:var(--font-display);}
+.banner-cta{display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0;}
+.gauge{position:relative; width:78px; height:78px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+.gauge .num{font-family:var(--font-display); font-size:19px; font-weight:700;}
+.gauge .lbl{position:absolute; bottom:-16px; font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; color:rgba(255,255,255,.55);}
+.btn-primary{
+  border:none; background:var(--accent); color:#fff; padding:10px 18px; border-radius:999px;
+  font-size:13px; font-weight:700; box-shadow:0 8px 18px rgba(255,90,31,.35); transition:.15s;
+}
+.btn-primary:hover{filter:brightness(1.06); transform:translateY(-1px);}
+
+/* ============================================================
+   THEME TOGGLE
+   ============================================================ */
+.theme-toggle{
+  width:38px; height:38px; border-radius:50%; border:1.5px solid var(--line); background:var(--surface);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-soft); flex-shrink:0; transition:.15s;
+}
+.theme-toggle:hover{border-color:var(--line-strong); color:var(--ink);}
+.theme-toggle svg{width:17px; height:17px;}
+.theme-toggle .sun{display:none;}
+[data-theme="dark"] .theme-toggle .sun{display:block;}
+[data-theme="dark"] .theme-toggle .moon{display:none;}
+
+/* ============================================================
+   WSIB LAUNCHER + BUDGET MODE BAR
+   ============================================================ */
+.wsib-btn{
+  border:none; background:linear-gradient(120deg, var(--accent), #FF8A4C); color:#fff;
+  padding:9px 16px; border-radius:999px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:7px;
+  box-shadow:0 8px 18px rgba(255,90,31,.3); transition:.15s; flex-shrink:0;
+}
+.wsib-btn:hover{filter:brightness(1.05); transform:translateY(-1px);}
+.wsib-btn svg{width:15px; height:15px;}
+
+.budget-bar{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  background:var(--teal-soft); border:1px solid var(--teal); border-radius:var(--radius); padding:12px 16px; margin-bottom:16px;
+}
+.budget-bar strong{font-size:13px; color:var(--ink);}
+.budget-bar .bb-input{display:flex; align-items:center; gap:6px;}
+.budget-bar input[type="number"]{width:130px; padding:7px 10px; border:1.5px solid var(--line-strong); border-radius:var(--radius-sm); font-size:13px; background:var(--surface); color:var(--ink);}
+.budget-bar .bb-note{font-size:12px; color:var(--ink-soft); flex:1; min-width:160px;}
+.budget-bar .bb-close{margin-left:auto; border:none; background:none; color:var(--ink-soft); font-size:12.5px; font-weight:700;}
+
+/* ============================================================
+   WHAT SHOULD I BUY — MODAL
+   ============================================================ */
+.wsib-field{margin-bottom:16px;}
+.wsib-field label{display:block; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:8px;}
+.wsib-field input[type="number"], .wsib-field select{
+  width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:var(--radius-sm); font-size:14px; background:var(--surface-2); color:var(--ink);
+}
+.priority-chip{
+  border:1.5px solid var(--line); background:var(--surface-2); border-radius:999px; padding:8px 15px; font-size:13px; font-weight:600; color:var(--ink-soft); display:inline-flex; align-items:center; gap:6px;
+}
+.priority-chip.active{background:var(--teal); border-color:var(--teal); color:#fff;}
+.wsib-submit{width:100%; border:none; background:var(--accent); color:#fff; padding:12px; border-radius:999px; font-size:14px; font-weight:700; box-shadow:0 8px 18px rgba(255,90,31,.3);}
+.wsib-result{margin-top:22px; padding-top:20px; border-top:1px dashed var(--line);}
+.wsib-pick{
+  display:flex; gap:14px; padding:16px; border-radius:var(--radius); background:var(--surface-2); border:1.5px solid var(--teal); position:relative; margin-bottom:12px;
+}
+.wsib-pick .match{position:absolute; top:-10px; right:14px; background:var(--teal); color:#fff; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px;}
+.wsib-pick .ic{width:52px; height:52px; border-radius:var(--radius); background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;}
+.wsib-pick .body{flex:1; min-width:0;}
+.wsib-pick .name{font-weight:700; font-size:14.5px; margin-bottom:3px;}
+.wsib-pick .meta{font-size:12px; color:var(--ink-faint); margin-bottom:6px;}
+.wsib-alt{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--line); margin-bottom:8px; font-size:13px;}
+.wsib-alt .ic{font-size:18px;}
+.wsib-alt .name{flex:1; font-weight:600;}
+.spec-badges{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+.spec-badge{font-size:10.5px; font-weight:700; background:var(--surface); border:1px solid var(--line); color:var(--ink-soft); padding:2px 8px; border-radius:6px;}
+
+/* ============================================================
+   PRICE ALERTS
+   ============================================================ */
+.alert-item{display:flex; align-items:center; gap:12px; padding:12px; border-radius:var(--radius); border:1px solid var(--line); margin-bottom:10px;}
+.alert-item .ic{width:40px; height:40px; border-radius:var(--radius-sm); background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;}
+.alert-item .body{flex:1; min-width:0;}
+.alert-item .title{font-size:13px; font-weight:600; margin-bottom:2px;}
+.alert-item .sub{font-size:11.5px; color:var(--ink-faint);}
+.alert-item .sub b{color:var(--ink);}
+.alert-item.hit{border-color:#1A8A4A; background:var(--teal-soft);}
+.alert-item .hit-tag{font-size:10.5px; font-weight:700; color:#1A8A4A; background:#E4F7EC; padding:2px 7px; border-radius:6px;}
+.alert-item .rm{border:none; background:var(--surface-2); width:26px; height:26px; border-radius:50%; color:var(--ink-faint); flex-shrink:0;}
+.mini-btn.alert.active{background:#FFF3D6; border-color:var(--gold); color:#8A6300;}
+
+/* ============================================================
+   TOOLBAR / RESULTS
+   ============================================================ */
+.toolbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
+.result-count{font-size:13.5px; color:var(--ink-soft);}
+.result-count b{color:var(--ink);}
+.sort-wrap{display:flex; align-items:center; gap:8px;}
+.sort-wrap label{font-size:12.5px; color:var(--ink-faint); font-weight:600;}
+.sort-wrap select{
+  border:1.5px solid var(--line); background:var(--surface); border-radius:var(--radius-sm);
+  padding:8px 12px; font-size:13px; font-weight:600; color:var(--ink);
+}
+.active-chips{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px;}
+.active-chip{display:flex; align-items:center; gap:6px; background:var(--accent-soft); color:var(--accent-ink); border-radius:999px; padding:5px 6px 5px 12px; font-size:12px; font-weight:700;}
+.active-chip button{border:none; background:rgba(122,46,10,.12); color:var(--accent-ink); width:17px; height:17px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; line-height:1;}
+
+/* ============================================================
+   PRODUCT GRID / CARD
+   ============================================================ */
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(258px,1fr)); gap:16px;}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:16px; display:flex; flex-direction:column; gap:10px; position:relative; box-shadow:var(--shadow-sm); transition:.15s;
+}
+.card:hover{box-shadow:var(--shadow-md); transform:translateY(-2px); border-color:var(--line-strong);}
+.card-top{display:flex; align-items:flex-start; justify-content:space-between;}
+.card-icon{
+  width:54px; height:54px; border-radius:var(--radius); background:var(--surface-2);
+  display:flex; align-items:center; justify-content:center; font-size:26px; border:1px solid var(--line);
+}
+.card-actions{display:flex; gap:6px;}
+.mini-btn{
+  width:32px; height:32px; border-radius:50%; border:1.5px solid var(--line); background:var(--surface);
+  display:flex; align-items:center; justify-content:center; color:var(--ink-faint); transition:.15s; flex-shrink:0;
+}
+.mini-btn svg{width:15px; height:15px;}
+.mini-btn:hover{border-color:var(--line-strong); color:var(--ink);}
+.mini-btn.wish.active{background:var(--danger-soft); border-color:var(--danger); color:var(--danger);}
+.mini-btn.cmp.active{background:var(--teal-soft); border-color:var(--teal); color:var(--teal);}
+.mini-btn.share.active{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink);}
+.share-toast{
+  position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(12px);
+  background:var(--ink); color:var(--surface); font-size:13px; font-weight:600;
+  padding:10px 18px; border-radius:999px; box-shadow:var(--shadow-lg);
+  opacity:0; pointer-events:none; transition:.18s; z-index:80;
+}
+.share-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.ribbon{
+  position:absolute; top:14px; left:-6px; background:var(--accent); color:#fff; font-size:10px; font-weight:700;
+  padding:4px 10px 4px 12px; border-radius:0 6px 6px 0; letter-spacing:.03em;
+}
+.ribbon::after{content:""; position:absolute; left:0; top:100%; border-width:5px 6px; border-style:solid; border-color:var(--accent-ink) transparent transparent transparent; opacity:.5;}
+.card-cat{font-size:11px; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:.06em;}
+.card-title{font-size:14.5px; font-weight:600; line-height:1.35; color:var(--ink); font-family:var(--font-body);}
+.card-brand{font-size:12px; color:var(--ink-faint);}
+.stars{display:flex; align-items:center; gap:5px; font-size:12px; color:var(--ink-soft);}
+.stars .star-val{color:#B5860A; font-weight:700; background:#FFF3D6; padding:1px 6px; border-radius:5px; font-size:11.5px;}
+.card-price-row{display:flex; align-items:baseline; gap:8px; margin-top:2px;}
+.card-price{font-family:var(--font-display); font-size:21px; font-weight:700;}
+.card-strike{font-size:12.5px; color:var(--ink-faint); text-decoration:line-through;}
+.card-discount{font-size:11.5px; font-weight:700; color:#1A8A4A; background:#E4F7EC; padding:2px 7px; border-radius:6px;}
+.card-store-row{display:flex; align-items:center; justify-content:space-between; font-size:11.5px; color:var(--ink-faint); margin-top:-3px;}
+.store-tag{display:inline-flex; align-items:center; gap:5px; font-weight:700;}
+.store-tag .dot{width:7px; height:7px; border-radius:50%;}
+.card-features{display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;}
+.feat-pill{font-size:10.5px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink-soft); padding:3px 8px; border-radius:999px;}
+.card-footer{display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px dashed var(--line); gap:8px;}
+.stores-count{font-size:11.5px; color:var(--ink-faint);}
+.view-btn{border:1.5px solid var(--ink); background:var(--ink); color:#fff; border-radius:999px; padding:7px 14px; font-size:12px; font-weight:700;}
+.view-btn:hover{background:#000;}
+.card.oos{opacity:.6;}
+.oos-tag{font-size:10.5px; font-weight:700; color:var(--danger); background:var(--danger-soft); padding:2px 8px; border-radius:6px;}
+
+.empty-state{grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--ink-faint);}
+.empty-state .glyph{font-size:44px; margin-bottom:10px;}
+.empty-state h3{color:var(--ink); font-size:17px; margin-bottom:6px;}
+.empty-state button{margin-top:14px; border:1.5px solid var(--line); background:var(--surface); border-radius:999px; padding:9px 18px; font-weight:700; font-size:13px;}
+
+/* ============================================================
+   COMPARE BAR
+   ============================================================ */
+.compare-bar{
+  position:fixed; left:50%; bottom:20px; transform:translateX(-50%) translateY(120%);
+  background:var(--ink); color:#fff; border-radius:999px; padding:9px 10px 9px 18px;
+  display:flex; align-items:center; gap:14px; box-shadow:var(--shadow-lg); z-index:50; transition:transform .25s ease; max-width:92vw;
+}
+.compare-bar.show{transform:translateX(-50%) translateY(0);}
+.compare-chips{display:flex; gap:6px; overflow-x:auto; max-width:44vw;}
+.compare-chip{
+  display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.1); padding:5px 6px 5px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap;
+}
+.compare-chip button{border:none; background:rgba(255,255,255,.18); color:#fff; width:16px; height:16px; border-radius:50%; font-size:10px;}
+.compare-bar .btn-primary{white-space:nowrap;}
+.compare-bar .clear-cmp{border:none; background:none; color:rgba(255,255,255,.65); font-size:12px; font-weight:600;}
+
+/* ============================================================
+   MODALS / DRAWERS
+   ============================================================ */
+.overlay{position:fixed; inset:0; background:rgba(15,18,32,.55); backdrop-filter:blur(2px); z-index:70; display:none; align-items:center; justify-content:center; padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface); border-radius:var(--radius-lg); width:100%; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow-lg);}
+.modal.detail{max-width:640px;}
+.modal.compare{max-width:920px;}
+.modal-head{position:sticky; top:0; background:var(--surface); display:flex; align-items:flex-start; justify-content:space-between; padding:20px 22px 14px; border-bottom:1px solid var(--line); z-index:2;}
+.modal-head h2{font-size:19px;}
+.modal-head p{font-size:12.5px; color:var(--ink-faint); margin-top:4px;}
+.modal-close{border:none; background:var(--surface-2); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); flex-shrink:0;}
+.modal-close:hover{background:var(--line);}
+.modal-body{padding:20px 22px 24px;}
+
+.detail-top{display:flex; gap:16px; margin-bottom:16px;}
+.detail-icon{width:72px; height:72px; border-radius:var(--radius); background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:34px; flex-shrink:0;}
+.detail-feats{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.offers-table{width:100%; border-collapse:collapse; margin-top:6px;}
+.offers-table th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); padding:8px 10px; border-bottom:1.5px solid var(--line);}
+.offers-table td{padding:11px 10px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:middle;}
+.offers-table tr.best-row{background:var(--teal-soft);}
+.offers-table tr:last-child td{border-bottom:none;}
+.best-tag{font-size:10px; font-weight:700; color:#0B6E6E; background:#C9F1EF; padding:2px 7px; border-radius:6px; margin-left:6px;}
+.buy-btn{border:1.5px solid var(--line); background:var(--surface); border-radius:999px; padding:6px 13px; font-size:11.5px; font-weight:700;}
+.buy-btn:hover{border-color:var(--ink);}
+.coupon-note{font-size:11px; color:var(--teal); margin-top:2px;}
+
+.cmp-table-wrap{overflow-x:auto;}
+.cmp-table{width:100%; border-collapse:collapse; min-width:560px;}
+.cmp-table th, .cmp-table td{padding:12px 14px; border-bottom:1px solid var(--line); font-size:13px; text-align:left; vertical-align:top;}
+.cmp-table th.rowlabel, .cmp-table td.rowlabel{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700; white-space:nowrap; background:var(--surface-2);}
+.cmp-table thead th{background:var(--surface); position:sticky; top:0;}
+.cmp-col-head{display:flex; flex-direction:column; gap:6px; min-width:150px;}
+.cmp-col-head .rm{align-self:flex-end; border:none; background:var(--surface-2); width:22px; height:22px; border-radius:50%; font-size:11px; color:var(--ink-faint);}
+.cmp-col-head .ic{font-size:26px;}
+.cmp-best{background:#E4F7EC !important; font-weight:700; color:#1A8A4A;}
+
+/* WISHLIST DRAWER */
+.drawer-overlay{position:fixed; inset:0; background:rgba(15,18,32,.45); z-index:70; display:none;}
+.drawer-overlay.open{display:block;}
+.drawer{
+  position:fixed; top:0; right:0; height:100%; width:380px; max-width:92vw; background:var(--surface);
+  z-index:71; box-shadow:var(--shadow-lg); transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column;
+}
+.drawer.open{transform:translateX(0);}
+.drawer-head{display:flex; align-items:center; justify-content:space-between; padding:20px 20px 14px; border-bottom:1px solid var(--line);}
+.drawer-body{flex:1; overflow-y:auto; padding:14px 16px;}
+.wish-item{display:flex; gap:12px; padding:12px; border:1px solid var(--line); border-radius:var(--radius); margin-bottom:10px;}
+.wish-item .ic{width:48px; height:48px; border-radius:var(--radius-sm); background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;}
+.wish-item .body{flex:1; min-width:0;}
+.wish-item .title{font-size:13px; font-weight:600; margin-bottom:3px;}
+.wish-item .price{font-family:var(--font-display); font-weight:700; font-size:14.5px;}
+.wish-item .rm{border:none; background:none; color:var(--ink-faint); flex-shrink:0;}
+.wish-item .rm:hover{color:var(--danger);}
+
+.hint-empty{text-align:center; color:var(--ink-faint); font-size:13px; padding:50px 10px;}
+.hint-empty .glyph{font-size:34px; display:block; margin-bottom:8px;}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;}
+  .filters{
+    position:fixed; inset:0 auto 0 0; width:300px; max-width:86vw; z-index:71;
+    transform:translateX(-105%); transition:transform .22s ease; border-radius:0; max-height:none; top:0; bottom:0;
+  }
+  .filters.open{transform:translateX(0);}
+  .filters-toggle{display:flex;}
+  .banner{flex-wrap:wrap;}
+  .banner-cta{order:-1; width:100%; flex-direction:row; justify-content:space-between;}
+}
+@media (max-width:640px){
+  .topbar-inner{flex-wrap:wrap; padding:12px 16px;}
+  .brand{order:1;}
+  .top-actions{order:2; margin-left:auto;}
+  .search-wrap{order:3; max-width:100%; width:100%;}
+  .layout{padding:16px 14px 90px;}
+  .banner{padding:20px; gap:16px;}
+  .banner-body h2{font-size:18px;}
+  .icon-btn span.lbl{display:none;}
+  .wsib-btn span.lbl{display:none;}
+  .wsib-btn{padding:9px 12px;}
+  .theme-toggle{width:34px; height:34px;}
+}
+.filters-scrim{position:fixed; inset:0; background:rgba(15,18,32,.45); z-index:69; display:none;}
+.filters-scrim.open{display:block;}/* ============================================================
+   RECENTLY VIEWED STRIP
+   ============================================================ */
+.recent-strip{margin-bottom:20px;}
+.recent-strip-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.recent-strip-head h4{font-size:13px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+.recent-strip-head button{border:none; background:none; color:var(--ink-faint); font-size:12px; font-weight:600;}
+.recent-strip-head button:hover{color:var(--danger);}
+.recent-row{display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+.recent-card{
+  flex-shrink:0; width:150px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:10px; cursor:pointer; transition:.15s;
+}
+.recent-card:hover{border-color:var(--line-strong); box-shadow:var(--shadow-sm); transform:translateY(-1px);}
+.recent-card .ic{width:34px; height:34px; border-radius:8px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:17px; margin-bottom:8px;}
+.recent-card .t{font-size:12px; font-weight:600; line-height:1.3; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.recent-card .p{font-family:var(--font-display); font-size:13px; font-weight:700;}
+
+/* SIMILAR PRODUCTS (in detail modal) */
+.similar-head{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:22px 0 10px;}
+.similar-row{display:flex; gap:10px; overflow-x:auto;}
+.similar-card{flex-shrink:0; width:160px; border:1px solid var(--line); border-radius:var(--radius); padding:10px; cursor:pointer; transition:.15s;}
+.similar-card:hover{border-color:var(--line-strong); box-shadow:var(--shadow-sm);}
+.similar-card .ic{font-size:22px; margin-bottom:6px;}
+.similar-card .t{font-size:12px; font-weight:600; line-height:1.3; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.similar-card .p{font-family:var(--font-display); font-size:13px; font-weight:700;}
+.similar-card .r{font-size:11px; color:var(--ink-faint);}
+
+/* PRICE TREND SPARKLINE */
+.trend-block{display:flex; align-items:center; gap:12px; margin-top:12px; padding:10px 12px; background:var(--surface-2); border-radius:var(--radius-sm); border:1px solid var(--line);}
+.trend-block svg{flex-shrink:0;}
+.trend-text{font-size:11.5px; color:var(--ink-soft); line-height:1.4;}
+.trend-text b{color:#1A8A4A;}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <button class="icon-btn filters-toggle" id="filtersToggleBtn" aria-label="Show filters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+    </button>
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">DealRadar<small>Price &amp; deal comparator</small></div>
+    </div>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search phones, laptops, TVs, headphones…" autocomplete="off" />
+      <button class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
+      <div class="search-suggest" id="searchSuggest"></div>
+    </div>
+    <div class="top-actions">
+      <button class="wsib-btn" id="wsibBtn" title="What Should I Buy?">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 21h5M12 3a6 6 0 0 0-3.5 10.9c.4.3.7.9.7 1.5v.6h5.6v-.6c0-.6.3-1.2.7-1.5A6 6 0 0 0 12 3z"/></svg>
+        <span class="lbl">What Should I Buy?</span>
+      </button>
+      <button class="icon-btn" id="budgetModeBtn" title="Budget mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span class="lbl">Budget Mode</span>
+      </button>
+      <button class="icon-btn" id="alertsBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="lbl">Alerts</span>
+        <span class="count" id="alertsCount">0</span>
+      </button>
+      <button class="icon-btn" id="compareTopBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="12" rx="1"/></svg>
+        <span class="lbl">Compare</span>
+        <span class="count" id="compareCount">0</span>
+      </button>
+      <button class="icon-btn" id="wishlistBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        <span class="lbl">Wishlist</span>
+        <span class="count" id="wishlistCount">0</span>
+      </button>
+      <button class="theme-toggle" id="themeToggleBtn" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="filters-scrim" id="filtersScrim"></div>
+
+<div class="layout">
+  <aside class="filters" id="filtersPanel">
+    <div class="filters-head">
+      <h3>Filters</h3>
+      <button class="clear-filters" id="clearFiltersBtn">Reset all</button>
+    </div>
+
+    <div class="filter-group">
+      <span class="fg-label">Category</span>
+      <div class="chip-row" id="categoryChips"></div>
+    </div>
+
+    <div class="filter-group">
+      <span class="fg-label">Brand</span>
+      <div id="brandChecks"></div>
+    </div>
+
+    <div class="filter-group">
+      <span class="fg-label">Store</span>
+      <div id="storeChecks"></div>
+    </div>
+
+    <div class="filter-group">
+      <span class="fg-label">Price range (₹)</span>
+      <div class="price-inputs">
+        <input type="number" id="minPriceInput" placeholder="Min" />
+        <span>–</span>
+        <input type="number" id="maxPriceInput" placeholder="Max" />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="fg-label">Minimum rating</span>
+      <div class="rating-btns" id="ratingBtns">
+        <button data-r="0" class="active">Any</button>
+        <button data-r="3">3★+</button>
+        <button data-r="4">4★+</button>
+        <button data-r="4.5">4.5★+</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="toggle-row">
+        <span class="fg-label" style="margin-bottom:0;">In stock only</span>
+        <label class="switch">
+          <input type="checkbox" id="inStockToggle" />
+          <span class="track"></span>
+        </label>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div id="bannerSlot"></div>
+    <div id="budgetSlot"></div>
+    <div id="recentSlot"></div>
+
+    <div class="toolbar">
+      <div class="result-count" id="resultCount"></div>
+      <div class="sort-wrap">
+        <label for="sortSelect">Sort</label>
+        <select id="sortSelect">
+          <option value="relevance">Best Overall</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating-desc">Rating: High to Low</option>
+          <option value="discount-desc">Discount: High to Low</option>
+          <option value="delivery-asc">Delivery: Fastest</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="active-chips" id="activeChips"></div>
+
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<div class="compare-bar" id="compareBar">
+  <div class="compare-chips" id="compareChips"></div>
+  <button class="clear-cmp" id="clearCompareBtn">Clear</button>
+  <button class="btn-primary" id="openCompareBtn">Compare</button>
+</div>
+
+<!-- Product detail modal -->
+<div class="overlay" id="detailOverlay">
+  <div class="modal detail" id="detailModal"></div>
+</div>
+
+<!-- Compare modal -->
+<div class="overlay" id="compareOverlay">
+  <div class="modal compare" id="compareModal"></div>
+</div>
+
+<!-- Wishlist drawer -->
+<div class="drawer-overlay" id="wishOverlay"></div>
+<aside class="drawer" id="wishDrawer">
+  <div class="drawer-head">
+    <h3>Your wishlist</h3>
+    <button class="modal-close" id="closeWishBtn">✕</button>
+  </div>
+  <div class="drawer-body" id="wishBody"></div>
+</aside>
+
+<!-- Price alerts drawer -->
+<div class="drawer-overlay" id="alertsOverlay"></div>
+<aside class="drawer" id="alertsDrawer">
+  <div class="drawer-head">
+    <h3>Price alerts</h3>
+    <button class="modal-close" id="closeAlertsBtn">✕</button>
+  </div>
+  <div class="drawer-body" id="alertsBody"></div>
+</aside>
+
+<!-- What Should I Buy? modal -->
+<div class="overlay" id="wsibOverlay">
+  <div class="modal detail" id="wsibModal"></div>
+</div>
+
+<script>
+"use strict";
+/* ==============================================================
+   Smart Shopping Comparator — vanilla TypeScript-style JS
+   Frontend-only. No backend, no API keys. Mock data + localStorage.
+   (Types below are documented via JSDoc since this runs directly
+   in the browser with zero build step.)
+   ============================================================== */
+
+/**
+ * @typedef {'Amazon'|'Flipkart'|'Myntra'|'Croma'|'Reliance Digital'} StoreName
+ * @typedef {{store:StoreName, price:number, originalPrice:number, rating:number, reviewCount:number, deliveryDays:number, deliveryText:string, inStock:boolean, couponText?:string}} StoreOffer
+ * @typedef {{id:string, name:string, brand:string, category:string, icon:string, features:string[], offers:StoreOffer[]}} Product
+ */
+
+const STORE_COLORS = {
+  'Amazon':'var(--amazon)', 'Flipkart':'var(--flipkart)', 'Myntra':'var(--myntra)',
+  'Croma':'var(--croma)', 'Reliance Digital':'var(--reliance)', 'Meesho':'var(--meesho)'
+};
+
+/** Real storefront search URLs — clicking "Buy" opens a live search for the product on that store. */
+const STORE_SEARCH_URL = {
+  'Amazon': (q) => `https://www.amazon.in/s?k=${encodeURIComponent(q)}`,
+  'Flipkart': (q) => `https://www.flipkart.com/search?q=${encodeURIComponent(q)}`,
+  'Myntra': (q) => `https://www.myntra.com/${encodeURIComponent(q.replace(/\s+/g,'-'))}`,
+  'Croma': (q) => `https://www.croma.com/searchB?q=${encodeURIComponent(q)}`,
+  'Reliance Digital': (q) => `https://www.reliancedigital.in/search?q=${encodeURIComponent(q)}`,
+  'Meesho': (q) => `https://www.meesho.com/search?q=${encodeURIComponent(q)}`
+};
+
+/** @type {Product[]} */
+const MOCK_PRODUCTS = [
+  { id:'p1', name:'iPhone 15 (128GB)', brand:'Apple', category:'Smartphones', icon:'📱',
+    features:['6.1" Super Retina XDR','A16 Bionic chip','48MP Main camera','USB-C','5G enabled'],
+    offers:[
+      { store:'Amazon', price:65999, originalPrice:79900, rating:4.6, reviewCount:24310, deliveryDays:1, deliveryText:'Tomorrow', inStock:true, couponText:'Bank offer ₹2000 off' },
+      { store:'Flipkart', price:64999, originalPrice:79900, rating:4.5, reviewCount:18540, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Croma', price:67499, originalPrice:79900, rating:4.4, reviewCount:3021, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Reliance Digital', price:66999, originalPrice:79900, rating:4.3, reviewCount:1876, deliveryDays:2, deliveryText:'2 days', inStock:false }
+    ]},
+  { id:'p2', name:'Galaxy S24 (256GB)', brand:'Samsung', category:'Smartphones', icon:'📱',
+    features:['6.2" Dynamic AMOLED 2X','Snapdragon 8 Gen 3','Galaxy AI','50MP triple camera','5G enabled'],
+    offers:[
+      { store:'Amazon', price:62999, originalPrice:89999, rating:4.4, reviewCount:9021, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:61499, originalPrice:89999, rating:4.5, reviewCount:12034, deliveryDays:1, deliveryText:'Tomorrow', inStock:true, couponText:'Exchange up to ₹18000' },
+      { store:'Croma', price:63999, originalPrice:89999, rating:4.3, reviewCount:1543, deliveryDays:4, deliveryText:'4 days', inStock:true }
+    ]},
+  { id:'p3', name:'Pixel 8a (128GB)', brand:'Google', category:'Smartphones', icon:'📱',
+    features:['6.1" OLED 120Hz','Google Tensor G3','Best-in-class camera AI','7 yrs OS updates'],
+    offers:[
+      { store:'Amazon', price:38999, originalPrice:52999, rating:4.5, reviewCount:6210, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:39499, originalPrice:52999, rating:4.4, reviewCount:5320, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:40999, originalPrice:52999, rating:4.2, reviewCount:890, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p4', name:'MacBook Air M2 (13", 256GB)', brand:'Apple', category:'Laptops', icon:'💻',
+    features:['Apple M2 chip','13.6" Liquid Retina','18-hr battery life','Fanless silent design'],
+    offers:[
+      { store:'Amazon', price:92990, originalPrice:114900, rating:4.7, reviewCount:15200, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:91490, originalPrice:114900, rating:4.6, reviewCount:10820, deliveryDays:3, deliveryText:'3 days', inStock:true, couponText:'No-cost EMI available' },
+      { store:'Croma', price:94990, originalPrice:114900, rating:4.6, reviewCount:2410, deliveryDays:1, deliveryText:'Tomorrow', inStock:true }
+    ]},
+  { id:'p5', name:'ASUS ROG Strix G16', brand:'ASUS', category:'Laptops', icon:'💻',
+    features:['Intel Core i7-13650HX','RTX 4060 8GB','16" 165Hz display','16GB RAM / 512GB SSD'],
+    offers:[
+      { store:'Amazon', price:119990, originalPrice:154990, rating:4.4, reviewCount:3120, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Flipkart', price:117990, originalPrice:154990, rating:4.3, reviewCount:2870, deliveryDays:4, deliveryText:'4 days', inStock:true },
+      { store:'Croma', price:122990, originalPrice:154990, rating:4.2, reviewCount:540, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p6', name:'Dell XPS 13', brand:'Dell', category:'Laptops', icon:'💻',
+    features:['Intel Core i5-1340P','13.4" FHD+ InfinityEdge','16GB RAM / 512GB SSD','Ultra-slim chassis'],
+    offers:[
+      { store:'Amazon', price:84990, originalPrice:109990, rating:4.3, reviewCount:1980, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:86990, originalPrice:109990, rating:4.2, reviewCount:410, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Croma', price:85990, originalPrice:109990, rating:4.1, reviewCount:320, deliveryDays:2, deliveryText:'2 days', inStock:false }
+    ]},
+  { id:'p7', name:'Sony WH-1000XM5', brand:'Sony', category:'Headphones', icon:'🎧',
+    features:['Industry-leading ANC','30-hr battery','Multipoint pairing','Hi-Res Audio'],
+    offers:[
+      { store:'Amazon', price:26990, originalPrice:34990, rating:4.6, reviewCount:8420, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:25990, originalPrice:34990, rating:4.5, reviewCount:6210, deliveryDays:2, deliveryText:'2 days', inStock:true, couponText:'Extra ₹1000 off on card' },
+      { store:'Croma', price:27990, originalPrice:34990, rating:4.4, reviewCount:1120, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p8', name:'boAt Rockerz 550', brand:'boAt', category:'Headphones', icon:'🎧',
+    features:['50mm drivers','20-hr playback','Padded ear cushions','Bluetooth 5.0'],
+    offers:[
+      { store:'Amazon', price:1399, originalPrice:3490, rating:4.1, reviewCount:42100, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:1299, originalPrice:3490, rating:4.2, reviewCount:51230, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Myntra', price:1499, originalPrice:3490, rating:4.0, reviewCount:3200, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Meesho', price:1199, originalPrice:3490, rating:3.9, reviewCount:15800, deliveryDays:5, deliveryText:'5 days', inStock:true, couponText:'Extra ₹50 off on prepaid' }
+    ]},
+  { id:'p9', name:'Apple AirPods Pro (2nd Gen)', brand:'Apple', category:'Headphones', icon:'🎧',
+    features:['Active Noise Cancellation','Adaptive Transparency','USB-C case','Personalized Spatial Audio'],
+    offers:[
+      { store:'Amazon', price:20999, originalPrice:26900, rating:4.7, reviewCount:19870, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:21499, originalPrice:26900, rating:4.6, reviewCount:14210, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Croma', price:22490, originalPrice:26900, rating:4.5, reviewCount:2870, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p10', name:'Apple Watch Series 9 (GPS, 41mm)', brand:'Apple', category:'Smartwatches', icon:'⌚',
+    features:['S9 SiP chip','Double Tap gesture','Always-On Retina display','Blood O2 & ECG'],
+    offers:[
+      { store:'Amazon', price:35900, originalPrice:41900, rating:4.6, reviewCount:7320, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:34900, originalPrice:41900, rating:4.5, reviewCount:5210, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Croma', price:36900, originalPrice:41900, rating:4.4, reviewCount:980, deliveryDays:1, deliveryText:'Tomorrow', inStock:true }
+    ]},
+  { id:'p11', name:'Samsung Galaxy Watch 6', brand:'Samsung', category:'Smartwatches', icon:'⌚',
+    features:['Sapphire crystal glass','Body composition analysis','Sleep coaching','Bixby & Google Assistant'],
+    offers:[
+      { store:'Amazon', price:24999, originalPrice:32999, rating:4.3, reviewCount:3410, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:23999, originalPrice:32999, rating:4.4, reviewCount:4120, deliveryDays:1, deliveryText:'Tomorrow', inStock:true }
+    ]},
+  { id:'p12', name:'Noise ColorFit Pulse 2', brand:'Noise', category:'Smartwatches', icon:'⌚',
+    features:['1.69" HD display','SpO2 monitoring','10-day battery','60+ sports modes'],
+    offers:[
+      { store:'Amazon', price:1399, originalPrice:4999, rating:3.9, reviewCount:61200, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:1299, originalPrice:4999, rating:4.0, reviewCount:78400, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Myntra', price:1499, originalPrice:4999, rating:3.8, reviewCount:5210, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Meesho', price:1149, originalPrice:4999, rating:3.7, reviewCount:21400, deliveryDays:6, deliveryText:'6 days', inStock:true }
+    ]},
+  { id:'p13', name:'Nike Air Zoom Pegasus 40', brand:'Nike', category:'Shoes', icon:'👟',
+    features:['Responsive Zoom Air cushioning','Breathable engineered mesh','Durable rubber outsole'],
+    offers:[
+      { store:'Myntra', price:7995, originalPrice:11295, rating:4.5, reviewCount:4120, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Amazon', price:8295, originalPrice:11295, rating:4.4, reviewCount:2870, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:8095, originalPrice:11295, rating:4.3, reviewCount:1980, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p14', name:'Adidas Ultraboost Light', brand:'Adidas', category:'Shoes', icon:'👟',
+    features:['Lightest Boost midsole ever','Primeknit+ upper','Continental rubber outsole'],
+    offers:[
+      { store:'Myntra', price:12999, originalPrice:17999, rating:4.6, reviewCount:2140, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:13499, originalPrice:17999, rating:4.5, reviewCount:1320, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p15', name:'Samsung 55" Crystal 4K UHD Smart TV', brand:'Samsung', category:'Televisions', icon:'📺',
+    features:['4K UHD Crystal Processor','HDR10+','Smart Hub with Apps','PurColor technology'],
+    offers:[
+      { store:'Amazon', price:42990, originalPrice:65900, rating:4.4, reviewCount:9870, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Flipkart', price:41990, originalPrice:65900, rating:4.3, reviewCount:8210, deliveryDays:4, deliveryText:'4 days', inStock:true, couponText:'Extra ₹2000 off on exchange' },
+      { store:'Croma', price:43990, originalPrice:65900, rating:4.3, reviewCount:1240, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:42490, originalPrice:65900, rating:4.2, reviewCount:970, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p16', name:'LG 65" OLED evo C3', brand:'LG', category:'Televisions', icon:'📺',
+    features:['Self-lit OLED pixels','α9 AI Processor Gen6','Dolby Vision & Atmos','120Hz gaming'],
+    offers:[
+      { store:'Amazon', price:189990, originalPrice:259990, rating:4.7, reviewCount:2140, deliveryDays:4, deliveryText:'4 days', inStock:true },
+      { store:'Croma', price:194990, originalPrice:259990, rating:4.6, reviewCount:410, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:191990, originalPrice:259990, rating:4.5, reviewCount:310, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p17', name:'OnePlus 12R (256GB)', brand:'OnePlus', category:'Smartphones', icon:'📱',
+    features:['Snapdragon 8 Gen 2','120Hz LTPO AMOLED','100W SuperVOOC charging','5500mAh battery'],
+    offers:[
+      { store:'Amazon', price:39999, originalPrice:45999, rating:4.5, reviewCount:7210, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:38999, originalPrice:45999, rating:4.5, reviewCount:9120, deliveryDays:1, deliveryText:'Tomorrow', inStock:true }
+    ]},
+  { id:'p18', name:'JBL Flip 6 Bluetooth Speaker', brand:'JBL', category:'Speakers', icon:'🔊',
+    features:['IP67 waterproof & dustproof','12-hr playtime','PartyBoost pairing','Punchy JBL Pro Sound'],
+    offers:[
+      { store:'Amazon', price:8999, originalPrice:12999, rating:4.5, reviewCount:12300, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:8699, originalPrice:12999, rating:4.4, reviewCount:15400, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Croma', price:9299, originalPrice:12999, rating:4.3, reviewCount:2100, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Meesho', price:8299, originalPrice:12999, rating:4.0, reviewCount:3400, deliveryDays:5, deliveryText:'5 days', inStock:true }
+    ]},
+  { id:'p19', name:'iPad Air (5th Gen, 64GB)', brand:'Apple', category:'Tablets', icon:'📱',
+    features:['10.9" Liquid Retina','Apple M1 chip','Touch ID','Supports Apple Pencil 2'],
+    offers:[
+      { store:'Amazon', price:52900, originalPrice:59900, rating:4.7, reviewCount:6210, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:51900, originalPrice:59900, rating:4.6, reviewCount:5410, deliveryDays:1, deliveryText:'Tomorrow', inStock:true, couponText:'No-cost EMI available' },
+      { store:'Croma', price:54900, originalPrice:59900, rating:4.5, reviewCount:980, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p20', name:'Samsung Galaxy Tab S9 FE', brand:'Samsung', category:'Tablets', icon:'📱',
+    features:['10.9" 90Hz LCD','Included S Pen','IP68 rating','8000mAh battery'],
+    offers:[
+      { store:'Amazon', price:36999, originalPrice:44999, rating:4.4, reviewCount:2340, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:35999, originalPrice:44999, rating:4.5, reviewCount:3120, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Reliance Digital', price:37499, originalPrice:44999, rating:4.3, reviewCount:610, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p21', name:'Sony ZV-E10 Mirrorless Camera', brand:'Sony', category:'Cameras', icon:'📷',
+    features:['24.2MP APS-C sensor','Vlogging-focused controls','4K video','Interchangeable E-mount lens'],
+    offers:[
+      { store:'Amazon', price:59990, originalPrice:73990, rating:4.6, reviewCount:1420, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Flipkart', price:58990, originalPrice:73990, rating:4.5, reviewCount:1180, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Croma', price:61990, originalPrice:73990, rating:4.4, reviewCount:340, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p22', name:'Canon EOS R50 (RF-S 18-45mm)', brand:'Canon', category:'Cameras', icon:'📷',
+    features:['24.2MP APS-C CMOS sensor','Dual Pixel CMOS AF II','4K30 oversampled video','Vari-angle touchscreen'],
+    offers:[
+      { store:'Amazon', price:69990, originalPrice:82990, rating:4.5, reviewCount:610, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Croma', price:71990, originalPrice:82990, rating:4.4, reviewCount:210, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:70990, originalPrice:82990, rating:4.3, reviewCount:150, deliveryDays:3, deliveryText:'3 days', inStock:false }
+    ]},
+  { id:'p23', name:'Sony PlayStation 5 Slim (1TB)', brand:'Sony', category:'Gaming', icon:'🎮',
+    features:['Custom AMD RDNA 2 GPU','Ultra-high speed SSD','4K gaming up to 120fps','DualSense haptic controller'],
+    offers:[
+      { store:'Amazon', price:49990, originalPrice:54990, rating:4.8, reviewCount:8420, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:48990, originalPrice:54990, rating:4.8, reviewCount:9210, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Croma', price:51490, originalPrice:54990, rating:4.7, reviewCount:1420, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p24', name:'Xbox Series S (512GB)', brand:'Microsoft', category:'Gaming', icon:'🎮',
+    features:['1440p gaming up to 120fps','Custom SSD','Quick Resume','Compact all-digital design'],
+    offers:[
+      { store:'Amazon', price:29990, originalPrice:34990, rating:4.6, reviewCount:5120, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:28990, originalPrice:34990, rating:4.5, reviewCount:4310, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Reliance Digital', price:30490, originalPrice:34990, rating:4.4, reviewCount:890, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p25', name:'LG 27" UltraGear Gaming Monitor', brand:'LG', category:'Monitors', icon:'🖥️',
+    features:['27" QHD Nano IPS','165Hz refresh rate','1ms response time','NVIDIA G-SYNC compatible'],
+    offers:[
+      { store:'Amazon', price:24990, originalPrice:32990, rating:4.5, reviewCount:2140, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:23990, originalPrice:32990, rating:4.4, reviewCount:1870, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Croma', price:25990, originalPrice:32990, rating:4.3, reviewCount:410, deliveryDays:2, deliveryText:'2 days', inStock:true }
+    ]},
+  { id:'p26', name:'Dell 24" FHD Monitor (S2421H)', brand:'Dell', category:'Monitors', icon:'🖥️',
+    features:['23.8" Full HD IPS','75Hz refresh rate','AMD FreeSync','Ultra-thin bezels'],
+    offers:[
+      { store:'Amazon', price:9999, originalPrice:14999, rating:4.4, reviewCount:3210, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:9599, originalPrice:14999, rating:4.3, reviewCount:2870, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Reliance Digital', price:10299, originalPrice:14999, rating:4.2, reviewCount:540, deliveryDays:3, deliveryText:'3 days', inStock:true }
+    ]},
+  { id:'p27', name:'Mi Smart Band 8', brand:'Xiaomi', category:'Fitness Bands', icon:'⌚',
+    features:['1.62" AMOLED display','150+ workout modes','16-day battery life','SpO2 & heart rate tracking'],
+    offers:[
+      { store:'Amazon', price:2799, originalPrice:3999, rating:4.2, reviewCount:34200, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Flipkart', price:2599, originalPrice:3999, rating:4.3, reviewCount:41200, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Myntra', price:2899, originalPrice:3999, rating:4.1, reviewCount:3210, deliveryDays:3, deliveryText:'3 days', inStock:true },
+      { store:'Meesho', price:2399, originalPrice:3999, rating:4.0, reviewCount:9800, deliveryDays:4, deliveryText:'4 days', inStock:true, couponText:'Meesho wallet cashback ₹100' }
+    ]},
+  { id:'p28', name:'Philips Air Fryer HD9252', brand:'Philips', category:'Kitchen Appliances', icon:'🍳',
+    features:['4.1L Rapid Air technology','90% less fat cooking','Digital touchscreen','Dishwasher-safe parts'],
+    offers:[
+      { store:'Amazon', price:8995, originalPrice:12995, rating:4.5, reviewCount:9870, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Flipkart', price:8495, originalPrice:12995, rating:4.4, reviewCount:11200, deliveryDays:1, deliveryText:'Tomorrow', inStock:true },
+      { store:'Croma', price:9295, originalPrice:12995, rating:4.3, reviewCount:1540, deliveryDays:2, deliveryText:'2 days', inStock:true },
+      { store:'Meesho', price:7999, originalPrice:12995, rating:4.1, reviewCount:2640, deliveryDays:5, deliveryText:'5 days', inStock:true, couponText:'Extra 5% off via Meesho wallet' }
+    ]}
+];
+
+/** Attribute scores (1–10, 0 = not applicable) used by the "What Should I Buy?" recommender. */
+const SPECS = {
+  p1:{battery:7,camera:9,performance:9}, p2:{battery:7,camera:8,performance:9}, p3:{battery:7,camera:8,performance:7},
+  p4:{battery:9,camera:5,performance:8}, p5:{battery:5,camera:4,performance:10}, p6:{battery:7,camera:5,performance:7},
+  p7:{battery:8,camera:0,performance:8}, p8:{battery:6,camera:0,performance:5}, p9:{battery:6,camera:0,performance:7},
+  p10:{battery:5,camera:0,performance:8}, p11:{battery:5,camera:0,performance:7}, p12:{battery:8,camera:0,performance:4},
+  p13:{battery:0,camera:0,performance:7}, p14:{battery:0,camera:0,performance:8}, p15:{battery:0,camera:0,performance:7},
+  p16:{battery:0,camera:0,performance:9}, p17:{battery:8,camera:7,performance:8}, p18:{battery:7,camera:0,performance:6},
+  p19:{battery:8,camera:6,performance:8}, p20:{battery:8,camera:6,performance:7}, p21:{battery:6,camera:9,performance:7},
+  p22:{battery:6,camera:9,performance:7}, p23:{battery:0,camera:0,performance:10}, p24:{battery:0,camera:0,performance:8},
+  p25:{battery:0,camera:0,performance:8}, p26:{battery:0,camera:0,performance:5}, p27:{battery:9,camera:0,performance:4},
+  p28:{battery:0,camera:0,performance:6}
+};
+
+/* ---------- enrichment ---------- */
+function round1(n){ return Math.round(n*10)/10; }
+
+function enrichProduct(p){
+  const offers = p.offers.map(o => ({...o, discountPercent: Math.round(((o.originalPrice - o.price)/o.originalPrice)*100)}));
+  const inStockOffers = offers.filter(o=>o.inStock);
+  const usable = inStockOffers.length ? inStockOffers : offers;
+  const bestOffer = [...usable].sort((a,b)=>a.price-b.price)[0];
+  const bestRatedOffer = [...usable].sort((a,b)=>b.rating-a.rating)[0];
+  const avgRating = round1(offers.reduce((s,o)=>s+o.rating,0)/offers.length);
+  const maxDiscount = Math.max(...offers.map(o=>o.discountPercent));
+  const minPrice = Math.min(...offers.map(o=>o.price));
+  const maxPrice = Math.max(...offers.map(o=>o.price));
+  const fastestDeliveryDays = Math.min(...usable.map(o=>o.deliveryDays));
+  const specs = SPECS[p.id] || {battery:0,camera:0,performance:5};
+  return {...p, offers, bestOffer, bestRatedOffer, avgRating, maxDiscount, minPrice, maxPrice, fastestDeliveryDays, specs, overallScore:0};
+}
+
+function scoreProducts(products){
+  if (!products.length) return [];
+  const prices = products.map(p=>p.minPrice), ratings = products.map(p=>p.avgRating);
+  const discounts = products.map(p=>p.maxDiscount), deliveries = products.map(p=>p.fastestDeliveryDays);
+  const minP=Math.min(...prices), maxP=Math.max(...prices);
+  const minR=Math.min(...ratings), maxR=Math.max(...ratings);
+  const minD=Math.min(...discounts), maxD=Math.max(...discounts);
+  const minDel=Math.min(...deliveries), maxDel=Math.max(...deliveries);
+  const W = {price:.35, rating:.35, discount:.15, delivery:.15};
+  return products.map(p=>{
+    const priceScore = maxP===minP ? 1 : (maxP-p.minPrice)/(maxP-minP);
+    const ratingScore = maxR===minR ? 1 : (p.avgRating-minR)/(maxR-minR);
+    const discountScore = maxD===minD ? 1 : (p.maxDiscount-minD)/(maxD-minD);
+    const deliveryScore = maxDel===minDel ? 1 : (maxDel-p.fastestDeliveryDays)/(maxDel-minDel);
+    const overallScore = Math.round((priceScore*W.price + ratingScore*W.rating + discountScore*W.discount + deliveryScore*W.delivery)*100);
+    return {...p, overallScore};
+  });
+}
+
+const CATALOG = scoreProducts(MOCK_PRODUCTS.map(enrichProduct));
+const CATEGORIES = [...new Set(CATALOG.map(p=>p.category))].sort();
+const BRANDS = [...new Set(CATALOG.map(p=>p.brand))].sort();
+const STORES = [...new Set(CATALOG.flatMap(p=>p.offers.map(o=>o.store)))].sort();
+const GLOBAL_MIN = Math.floor(Math.min(...CATALOG.map(p=>p.minPrice))/100)*100;
+const GLOBAL_MAX = Math.ceil(Math.max(...CATALOG.map(p=>p.maxPrice))/100)*100;
+
+/* ---------- persistence ---------- */
+const LS_WISHLIST = 'dealradar_wishlist_v1';
+const LS_COMPARE = 'dealradar_compare_v1';
+const LS_RECENT = 'dealradar_recent_v1';
+const LS_THEME = 'dealradar_theme_v1';
+const LS_ALERTS = 'dealradar_alerts_v1';
+const LS_SEARCHES = 'dealradar_searches_v1';
+const LS_BUDGET = 'dealradar_budget_v1';
+function loadIds(key){ try{ const raw = localStorage.getItem(key); return raw ? new Set(JSON.parse(raw)) : new Set(); }catch(e){ return new Set(); } }
+function saveIds(key, set){ try{ localStorage.setItem(key, JSON.stringify([...set])); }catch(e){} }
+function loadList(key){ try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : []; }catch(e){ return []; } }
+function saveList(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr)); }catch(e){} }
+function loadObj(key){ try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+function saveObj(key, obj){ try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(e){} }
+
+/* ---------- state ---------- */
+const state = {
+  query:'',
+  categories:new Set(),
+  brands:new Set(),
+  stores:new Set(),
+  minPrice:GLOBAL_MIN,
+  maxPrice:GLOBAL_MAX,
+  minRating:0,
+  inStockOnly:false,
+  sortKey:'relevance',
+  wishlist:loadIds(LS_WISHLIST),
+  compare:loadIds(LS_COMPARE),
+  recentlyViewed:loadList(LS_RECENT),
+  theme: (localStorage.getItem(LS_THEME) === 'dark') ? 'dark' : 'light',
+  budgetMode:false,
+  budgetAmount: Number(localStorage.getItem(LS_BUDGET)) || null,
+  alerts: loadObj(LS_ALERTS),
+  recentSearches: loadList(LS_SEARCHES)
+};
+
+function trackRecentlyViewed(id){
+  state.recentlyViewed = [id, ...state.recentlyViewed.filter(x=>x!==id)].slice(0,10);
+  saveList(LS_RECENT, state.recentlyViewed);
+}
+
+function applyFilters(products){
+  const q = state.query.trim().toLowerCase();
+  return products.filter(p=>{
+    if (q && !(p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.features.some(f=>f.toLowerCase().includes(q)))) return false;
+    if (state.categories.size && !state.categories.has(p.category)) return false;
+    if (state.brands.size && !state.brands.has(p.brand)) return false;
+    if (state.stores.size && !p.offers.some(o=>state.stores.has(o.store))) return false;
+    if (p.minPrice < state.minPrice || p.minPrice > state.maxPrice) return false;
+    if (p.avgRating < state.minRating) return false;
+    if (state.inStockOnly && !p.offers.some(o=>o.inStock)) return false;
+    if (state.budgetMode && state.budgetAmount && p.minPrice > state.budgetAmount) return false;
+    return true;
+  });
+}
+function sortProducts(products, key){
+  const list = [...products];
+  switch(key){
+    case 'price-asc': return list.sort((a,b)=>a.minPrice-b.minPrice);
+    case 'price-desc': return list.sort((a,b)=>b.minPrice-a.minPrice);
+    case 'rating-desc': return list.sort((a,b)=>b.avgRating-a.avgRating);
+    case 'discount-desc': return list.sort((a,b)=>b.maxDiscount-a.maxDiscount);
+    case 'delivery-asc': return list.sort((a,b)=>a.fastestDeliveryDays-b.fastestDeliveryDays);
+    default: return list.sort((a,b)=>b.overallScore-a.overallScore);
+  }
+}
+
+/* ---------- helpers ---------- */
+const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const el = (html) => { const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function starsHtml(rating, count){
+  return `<span class="stars"><span class="star-val">★ ${rating.toFixed(1)}</span><span>${count ? formatCount(count)+' ratings' : ''}</span></span>`;
+}
+function formatCount(n){ if(n>=1000) return (n/1000).toFixed(n>=10000?0:1)+'k'; return String(n); }
+function gaugeStyle(score, size){
+  return `background:conic-gradient(var(--accent) ${score*3.6}deg, rgba(255,255,255,.14) 0deg); width:${size}px; height:${size}px;`;
+}
+
+/* ==============================================================
+   RENDER: FILTER SIDEBAR (built once, static structure)
+   ============================================================== */
+function buildFilterOptions(){
+  const catWrap = document.getElementById('categoryChips');
+  catWrap.innerHTML = CATEGORIES.map(c=>`<button class="chip" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
+  catWrap.addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-cat]'); if(!btn) return;
+    const c = btn.dataset.cat;
+    state.categories.has(c) ? state.categories.delete(c) : state.categories.add(c);
+    renderAll();
+  });
+
+  const brandWrap = document.getElementById('brandChecks');
+  brandWrap.innerHTML = BRANDS.map(b=>`
+    <label class="check-row"><input type="checkbox" data-brand="${esc(b)}" /> ${esc(b)}</label>
+  `).join('');
+  brandWrap.addEventListener('change', e=>{
+    const cb = e.target.closest('input[data-brand]'); if(!cb) return;
+    cb.checked ? state.brands.add(cb.dataset.brand) : state.brands.delete(cb.dataset.brand);
+    renderAll();
+  });
+
+  const storeWrap = document.getElementById('storeChecks');
+  storeWrap.innerHTML = STORES.map(s=>`
+    <label class="check-row"><input type="checkbox" data-store="${esc(s)}" />
+      <span class="store-tag"><span class="dot" style="background:${STORE_COLORS[s]}"></span>${esc(s)}</span>
+    </label>
+  `).join('');
+  storeWrap.addEventListener('change', e=>{
+    const cb = e.target.closest('input[data-store]'); if(!cb) return;
+    cb.checked ? state.stores.add(cb.dataset.store) : state.stores.delete(cb.dataset.store);
+    renderAll();
+  });
+
+  document.getElementById('minPriceInput').placeholder = String(GLOBAL_MIN);
+  document.getElementById('maxPriceInput').placeholder = String(GLOBAL_MAX);
+  document.getElementById('minPriceInput').addEventListener('input', e=>{
+    state.minPrice = e.target.value === '' ? GLOBAL_MIN : Number(e.target.value); renderAll();
+  });
+  document.getElementById('maxPriceInput').addEventListener('input', e=>{
+    state.maxPrice = e.target.value === '' ? GLOBAL_MAX : Number(e.target.value); renderAll();
+  });
+
+  document.getElementById('ratingBtns').addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-r]'); if(!btn) return;
+    state.minRating = Number(btn.dataset.r);
+    [...document.querySelectorAll('#ratingBtns button')].forEach(b=>b.classList.toggle('active', b===btn));
+    renderAll();
+  });
+
+  document.getElementById('inStockToggle').addEventListener('change', e=>{
+    state.inStockOnly = e.target.checked; renderAll();
+  });
+
+  document.getElementById('clearFiltersBtn').addEventListener('click', ()=>{
+    state.query=''; state.categories.clear(); state.brands.clear(); state.stores.clear();
+    state.minPrice=GLOBAL_MIN; state.maxPrice=GLOBAL_MAX; state.minRating=0; state.inStockOnly=false;
+    document.getElementById('searchInput').value='';
+    document.getElementById('minPriceInput').value='';
+    document.getElementById('maxPriceInput').value='';
+    document.getElementById('inStockToggle').checked=false;
+    [...document.querySelectorAll('#ratingBtns button')].forEach((b,i)=>b.classList.toggle('active', i===0));
+    [...brandWrap.querySelectorAll('input')].forEach(cb=>cb.checked=false);
+    [...storeWrap.querySelectorAll('input')].forEach(cb=>cb.checked=false);
+    renderAll();
+  });
+}
+
+function syncFilterChipStates(){
+  [...document.querySelectorAll('#categoryChips button')].forEach(b=>b.classList.toggle('active', state.categories.has(b.dataset.cat)));
+}
+
+/* ==============================================================
+   RENDER: ACTIVE FILTER CHIPS
+   ============================================================== */
+function renderActiveChips(){
+  const wrap = document.getElementById('activeChips');
+  const chips = [];
+  if (state.query) chips.push({label:`Search: "${state.query}"`, clear:()=>{state.query=''; document.getElementById('searchInput').value='';}});
+  state.categories.forEach(c=>chips.push({label:c, clear:()=>state.categories.delete(c)}));
+  state.brands.forEach(b=>chips.push({label:b, clear:()=>{state.brands.delete(b); const cb=document.querySelector(`#brandChecks input[data-brand="${CSS.escape(b)}"]`); if(cb)cb.checked=false;}}));
+  state.stores.forEach(s=>chips.push({label:s, clear:()=>{state.stores.delete(s); const cb=document.querySelector(`#storeChecks input[data-store="${CSS.escape(s)}"]`); if(cb)cb.checked=false;}}));
+  if (state.minRating>0) chips.push({label:`${state.minRating}★ & up`, clear:()=>{state.minRating=0; [...document.querySelectorAll('#ratingBtns button')].forEach((b,i)=>b.classList.toggle('active', i===0));}});
+  if (state.inStockOnly) chips.push({label:'In stock only', clear:()=>{state.inStockOnly=false; document.getElementById('inStockToggle').checked=false;}});
+  if (state.minPrice!==GLOBAL_MIN || state.maxPrice!==GLOBAL_MAX) chips.push({label:`${inr(state.minPrice)} – ${inr(state.maxPrice)}`, clear:()=>{state.minPrice=GLOBAL_MIN; state.maxPrice=GLOBAL_MAX; document.getElementById('minPriceInput').value=''; document.getElementById('maxPriceInput').value='';}});
+
+  wrap.innerHTML = chips.map((c,i)=>`<span class="active-chip">${esc(c.label)}<button data-i="${i}">✕</button></span>`).join('');
+  wrap.querySelectorAll('button').forEach((btn,i)=>btn.addEventListener('click', ()=>{ chips[i].clear(); renderAll(); }));
+}
+
+/* ==============================================================
+   RENDER: BEST OVERALL BANNER
+   ============================================================== */
+function renderBanner(list){
+  const slot = document.getElementById('bannerSlot');
+  if (!list.length){ slot.innerHTML=''; return; }
+  const best = [...list].sort((a,b)=>b.overallScore-a.overallScore)[0];
+  slot.innerHTML = '';
+  slot.appendChild(el(`
+    <div class="banner">
+      <div class="banner-icon">${best.icon}</div>
+      <div class="banner-body">
+        <div class="eyebrow">Best overall pick</div>
+        <h2>${esc(best.name)}</h2>
+        <p class="banner-sub">Ranked using price, rating, discount and delivery speed across ${best.offers.length} store${best.offers.length>1?'s':''}.</p>
+        <div class="banner-facts">
+          <div class="bf"><span class="l">Best price</span><span class="v tabular">${inr(best.bestOffer.price)} <small style="font-weight:500;opacity:.6;">on ${esc(best.bestOffer.store)}</small></span></div>
+          <div class="bf"><span class="l">Avg rating</span><span class="v">★ ${best.avgRating.toFixed(1)}</span></div>
+          <div class="bf"><span class="l">Max discount</span><span class="v">${best.maxDiscount}% off</span></div>
+          <div class="bf"><span class="l">Fastest delivery</span><span class="v">${best.fastestDeliveryDays} day${best.fastestDeliveryDays>1?'s':''}</span></div>
+        </div>
+      </div>
+      <div class="banner-cta">
+        <div class="gauge" style="${gaugeStyle(best.overallScore,78)}">
+          <div style="position:absolute; inset:5px; background:#171B2E; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+            <span class="num">${best.overallScore}</span>
+          </div>
+          <span class="lbl">Deal Score</span>
+        </div>
+        <button class="btn-primary" data-open-detail="${best.id}">View Deal</button>
+      </div>
+    </div>
+  `));
+  slot.querySelector('[data-open-detail]').addEventListener('click', ()=>openDetail(best.id));
+}
+
+/* ==============================================================
+   RENDER: PRODUCT GRID / CARD
+   ============================================================== */
+function cardHtml(p, isTopPick){
+  const inStockAnywhere = p.offers.some(o=>o.inStock);
+  const isWished = state.wishlist.has(p.id);
+  const isCompared = state.compare.has(p.id);
+  return `
+  <div class="card ${inStockAnywhere?'':'oos'}" data-id="${p.id}">
+    ${isTopPick ? `<span class="ribbon">Best overall</span>` : ''}
+    <div class="card-top">
+      <div class="card-icon">${p.icon}</div>
+      <div class="card-actions">
+        <button class="mini-btn wish ${isWished?'active':''}" data-wish="${p.id}" aria-label="Toggle wishlist" title="Wishlist">
+          <svg viewBox="0 0 24 24" fill="${isWished?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        </button>
+        <button class="mini-btn cmp ${isCompared?'active':''}" data-cmp="${p.id}" aria-label="Toggle compare" title="Compare">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="12" rx="1"/></svg>
+        </button>
+        <button class="mini-btn alert ${state.alerts[p.id]!==undefined?'active':''}" data-alert="${p.id}" aria-label="Set price alert" title="Set price alert">
+          <svg viewBox="0 0 24 24" fill="${state.alerts[p.id]!==undefined?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
+        <button class="mini-btn share" data-share="${p.id}" aria-label="Share product" title="Share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="card-cat">${esc(p.category)}</div>
+      <div class="card-title">${esc(p.name)}</div>
+      <div class="card-brand">${esc(p.brand)}</div>
+    </div>
+    ${starsHtml(p.avgRating, p.offers.reduce((s,o)=>s+o.reviewCount,0))}
+    <div class="card-price-row">
+      <span class="card-price tabular">${inr(p.minPrice)}</span>
+      <span class="card-strike tabular">${inr(p.bestOffer.originalPrice)}</span>
+      <span class="card-discount">${p.maxDiscount}% off</span>
+    </div>
+    <div class="card-store-row">
+      <span class="store-tag"><span class="dot" style="background:${STORE_COLORS[p.bestOffer.store]}"></span>Best on ${esc(p.bestOffer.store)}</span>
+      <span>${p.fastestDeliveryDays===1?'Delivery tomorrow':`${p.fastestDeliveryDays} day delivery`}</span>
+    </div>
+    <div class="card-features">
+      ${p.features.slice(0,3).map(f=>`<span class="feat-pill">${esc(f)}</span>`).join('')}
+    </div>
+    <div class="card-footer">
+      <span class="stores-count">${p.offers.length} store${p.offers.length>1?'s':''} compared</span>
+      ${inStockAnywhere ? `<button class="view-btn" data-open-detail="${p.id}">Compare stores</button>` : `<span class="oos-tag">Out of stock</span>`}
+    </div>
+  </div>`;
+}
+
+function renderGrid(list, topPickId){
+  const grid = document.getElementById('grid');
+  if (!list.length){
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="glyph">🔍</div>
+        <h3>No products match your filters</h3>
+        <p>Try widening your price range or clearing a filter.</p>
+        <button id="emptyResetBtn">Reset filters</button>
+      </div>`;
+    grid.querySelector('#emptyResetBtn').addEventListener('click', ()=>document.getElementById('clearFiltersBtn').click());
+    return;
+  }
+  grid.innerHTML = list.map(p=>cardHtml(p, p.id===topPickId)).join('');
+  grid.querySelectorAll('[data-open-detail]').forEach(b=>b.addEventListener('click', ()=>openDetail(b.dataset.openDetail)));
+  grid.querySelectorAll('[data-wish]').forEach(b=>b.addEventListener('click', (e)=>{e.stopPropagation(); toggleWishlist(b.dataset.wish);}));
+  grid.querySelectorAll('[data-cmp]').forEach(b=>b.addEventListener('click', (e)=>{e.stopPropagation(); toggleCompare(b.dataset.cmp);}));
+  grid.querySelectorAll('[data-alert]').forEach(b=>b.addEventListener('click', (e)=>{e.stopPropagation(); setAlert(b.dataset.alert);}));
+  grid.querySelectorAll('[data-share]').forEach(b=>b.addEventListener('click', (e)=>{e.stopPropagation(); shareProduct(b.dataset.share);}));
+}
+
+/* ==============================================================
+   SHARE
+   ============================================================== */
+function showShareToast(msg){
+  let el = document.getElementById('shareToast');
+  if (!el){
+    el = document.createElement('div');
+    el.id = 'shareToast';
+    el.className = 'share-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showShareToast._t);
+  showShareToast._t = setTimeout(()=>el.classList.remove('show'), 1800);
+}
+function legacyCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  ta.style.top = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+function shareProduct(id){
+  const p = CATALOG.find(x=>x.id===id);
+  if (!p) return;
+  const url = `${location.origin}${location.pathname}#product-${p.id}`;
+  const shareData = { title: p.name, text: `Check out ${p.name} on DealRadar`, url };
+
+  if (navigator.share){
+    navigator.share(shareData).catch(err=>{
+      if (err && err.name === 'AbortError') return; // user cancelled the share sheet
+      copyOrShow(url);
+    });
+    return;
+  }
+  copyOrShow(url);
+}
+function copyOrShow(url){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url)
+      .then(()=>showShareToast('Link copied to clipboard'))
+      .catch(()=>{ legacyCopy(url) ? showShareToast('Link copied to clipboard') : showShareToast(url); });
+  } else {
+    legacyCopy(url) ? showShareToast('Link copied to clipboard') : showShareToast(url);
+  }
+}
+
+/* ==============================================================
+   WISHLIST
+   ============================================================== */
+function toggleWishlist(id){
+  state.wishlist.has(id) ? state.wishlist.delete(id) : state.wishlist.add(id);
+  saveIds(LS_WISHLIST, state.wishlist);
+  renderAll();
+}
+function renderWishlistUI(){
+  document.getElementById('wishlistCount').textContent = state.wishlist.size;
+  const body = document.getElementById('wishBody');
+  if (!state.wishlist.size){
+    body.innerHTML = `<div class="hint-empty"><span class="glyph">🤍</span>Nothing saved yet.<br/>Tap the heart on any product to add it here.</div>`;
+    return;
+  }
+  const items = [...state.wishlist].map(id=>CATALOG.find(p=>p.id===id)).filter(Boolean);
+  body.innerHTML = items.map(p=>`
+    <div class="wish-item" data-id="${p.id}">
+      <div class="ic">${p.icon}</div>
+      <div class="body">
+        <div class="title">${esc(p.name)}</div>
+        <div class="price tabular">${inr(p.minPrice)} <span style="font-size:11px; color:var(--ink-faint); font-weight:500;">on ${esc(p.bestOffer.store)}</span></div>
+      </div>
+      <button class="rm" data-rm="${p.id}" title="Remove">✕</button>
+    </div>
+  `).join('');
+  body.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click', ()=>toggleWishlist(b.dataset.rm)));
+}
+
+/* ==============================================================
+   COMPARE
+   ============================================================== */
+function toggleCompare(id){
+  if (state.compare.has(id)) state.compare.delete(id);
+  else {
+    if (state.compare.size >= 4){ alert('You can compare up to 4 products at a time.'); return; }
+    state.compare.add(id);
+  }
+  saveIds(LS_COMPARE, state.compare);
+  renderAll();
+}
+function renderCompareBar(){
+  const bar = document.getElementById('compareBar');
+  document.getElementById('compareCount').textContent = state.compare.size;
+  if (!state.compare.size){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  const items = [...state.compare].map(id=>CATALOG.find(p=>p.id===id)).filter(Boolean);
+  document.getElementById('compareChips').innerHTML = items.map(p=>`
+    <span class="compare-chip">${p.icon} ${esc(p.name.split('(')[0].trim())}<button data-rm="${p.id}">✕</button></span>
+  `).join('');
+  document.getElementById('compareChips').querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click', ()=>toggleCompare(b.dataset.rm)));
+}
+
+function openCompareModal(){
+  const items = [...state.compare].map(id=>CATALOG.find(p=>p.id===id)).filter(Boolean);
+  if (items.length < 2){ alert('Select at least 2 products to compare.'); return; }
+  const modal = document.getElementById('compareModal');
+
+  function bestIdx(arr, higherBetter){
+    let idx=0;
+    for(let i=1;i<arr.length;i++){ if (higherBetter ? arr[i]>arr[idx] : arr[i]<arr[idx]) idx=i; }
+    return idx;
+  }
+  const prices = items.map(p=>p.minPrice), bestPriceIdx = bestIdx(prices,false);
+  const ratings = items.map(p=>p.avgRating), bestRatingIdx = bestIdx(ratings,true);
+  const discounts = items.map(p=>p.maxDiscount), bestDiscIdx = bestIdx(discounts,true);
+  const deliveries = items.map(p=>p.fastestDeliveryDays), bestDelIdx = bestIdx(deliveries,false);
+  const scores = items.map(p=>p.overallScore), bestScoreIdx = bestIdx(scores,true);
+
+  const rows = [
+    {label:'Lowest price', cells: items.map((p,i)=>`<span class="tabular">${inr(p.minPrice)}</span> <small style="color:var(--ink-faint)">on ${esc(p.bestOffer.store)}</small>`), bestIdx:bestPriceIdx},
+    {label:'Avg rating', cells: items.map(p=>`★ ${p.avgRating.toFixed(1)}`), bestIdx:bestRatingIdx},
+    {label:'Max discount', cells: items.map(p=>`${p.maxDiscount}% off`), bestIdx:bestDiscIdx},
+    {label:'Fastest delivery', cells: items.map(p=>`${p.fastestDeliveryDays} day${p.fastestDeliveryDays>1?'s':''}`), bestIdx:bestDelIdx},
+    {label:'Deal score', cells: items.map(p=>`${p.overallScore}/100`), bestIdx:bestScoreIdx},
+    {label:'Stores', cells: items.map(p=>`${p.offers.length}`), bestIdx:-1},
+    {label:'Key features', cells: items.map(p=>`<div style="display:flex;flex-direction:column;gap:4px;">${p.features.slice(0,4).map(f=>`<span style="font-size:12px;color:var(--ink-soft)">• ${esc(f)}</span>`).join('')}</div>`), bestIdx:-1},
+  ];
+
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2>Compare products</h2>
+        <p>Side-by-side comparison of ${items.length} product${items.length>1?'s':''}, best value in each row is highlighted.</p>
+      </div>
+      <button class="modal-close" id="closeCompareBtn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cmp-table-wrap">
+        <table class="cmp-table">
+          <thead>
+            <tr>
+              <th class="rowlabel"></th>
+              ${items.map(p=>`
+                <th>
+                  <div class="cmp-col-head">
+                    <button class="rm" data-rm="${p.id}">✕</button>
+                    <span class="ic">${p.icon}</span>
+                    <strong style="font-size:13px;">${esc(p.name)}</strong>
+                    <span style="font-size:11.5px; color:var(--ink-faint);">${esc(p.brand)} · ${esc(p.category)}</span>
+                  </div>
+                </th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r=>`
+              <tr>
+                <td class="rowlabel">${r.label}</td>
+                ${r.cells.map((c,i)=>`<td class="${i===r.bestIdx?'cmp-best':''}">${c}</td>`).join('')}
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  modal.querySelector('#closeCompareBtn').addEventListener('click', closeCompareModal);
+  modal.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click', ()=>{ toggleCompare(b.dataset.rm); openCompareModal(); }));
+  document.getElementById('compareOverlay').classList.add('open');
+}
+function closeCompareModal(){ document.getElementById('compareOverlay').classList.remove('open'); }
+
+/* ==============================================================
+   PRODUCT DETAIL MODAL
+   ============================================================== */
+/* ---------- price trend sparkline (deterministic mock history) ---------- */
+function seededRand(seed){
+  let s = seed % 2147483647; if (s<=0) s += 2147483646;
+  return function(){ s = (s*16807) % 2147483647; return (s-1)/2147483646; };
+}
+function priceHistorySpark(p){
+  const seed = [...p.id].reduce((a,c)=>a+c.charCodeAt(0),0) * 97;
+  const rand = seededRand(seed);
+  const points = 12;
+  const cur = p.minPrice;
+  const vals = [];
+  let v = cur * (1.08 + rand()*0.10);
+  for (let i=0;i<points-1;i++){
+    v = Math.max(cur*0.97, v - (v-cur) * (0.18 + rand()*0.12) + (rand()-0.6)*cur*0.015);
+    vals.push(v);
+  }
+  vals.push(cur);
+  const w=180, h=44, pad=4;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max-min) || 1;
+  const pts = vals.map((val,i)=>{
+    const x = pad + (i/(points-1))*(w-pad*2);
+    const y = h-pad - ((val-min)/range)*(h-pad*2);
+    return [x,y];
+  });
+  const path = pts.map((pt,i)=> (i===0?'M':'L')+pt[0].toFixed(1)+','+pt[1].toFixed(1)).join(' ');
+  const isLowest = cur <= min + 0.5;
+  return {
+    svg: `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <path d="${path}" fill="none" stroke="${isLowest?'#1A8A4A':'var(--accent)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="3" fill="${isLowest?'#1A8A4A':'var(--accent)'}"/>
+    </svg>`,
+    isLowest
+  };
+}
+function similarProducts(p, count){
+  return CATALOG.filter(x=>x.category===p.category && x.id!==p.id).sort((a,b)=>b.overallScore-a.overallScore).slice(0,count);
+}
+
+function openDetail(id){
+  const p = CATALOG.find(x=>x.id===id);
+  if (!p) return;
+  trackRecentlyViewed(id);
+  const modal = document.getElementById('detailModal');
+  const sortedOffers = [...p.offers].sort((a,b)=>a.price-b.price);
+  const isWished = state.wishlist.has(p.id);
+  const trend = priceHistorySpark(p);
+  const related = similarProducts(p, 4);
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2>${esc(p.name)}</h2>
+        <p>${esc(p.brand)} · ${esc(p.category)} · ★ ${p.avgRating.toFixed(1)} average across ${p.offers.length} stores</p>
+      </div>
+      <button class="modal-close" id="closeDetailBtn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-top">
+        <div class="detail-icon">${p.icon}</div>
+        <div style="flex:1;">
+          <div class="card-price-row">
+            <span class="card-price tabular">${inr(p.minPrice)}</span>
+            <span class="card-strike tabular">${inr(p.bestOffer.originalPrice)}</span>
+            <span class="card-discount">${p.maxDiscount}% off</span>
+          </div>
+          <div class="detail-feats">${p.features.map(f=>`<span class="feat-pill">${esc(f)}</span>`).join('')}</div>
+        </div>
+        <button class="mini-btn wish ${isWished?'active':''}" id="detailWishBtn" title="Wishlist">
+          <svg viewBox="0 0 24 24" fill="${isWished?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        </button>
+        <button class="mini-btn alert ${state.alerts[p.id]!==undefined?'active':''}" id="detailAlertBtn" title="Set price alert">
+          <svg viewBox="0 0 24 24" fill="${state.alerts[p.id]!==undefined?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
+      </div>
+      <div class="trend-block">
+        ${trend.svg}
+        <div class="trend-text">${trend.isLowest ? '<b>Lowest price in the last 30 days.</b>' : 'Price has fluctuated over the last 30 days.'} Simulated trend for illustration — add to your wishlist to keep an eye on it.</div>
+      </div>
+      <p style="font-size:11.5px; color:var(--ink-faint); margin:12px 0;">Prices shown are demo data. "Buy" opens that store's live search results for this product in a new tab.</p>
+      <table class="offers-table">
+        <thead><tr><th>Store</th><th>Price</th><th>Rating</th><th>Delivery</th><th>Stock</th><th></th></tr></thead>
+        <tbody>
+          ${sortedOffers.map((o,i)=>`
+            <tr class="${o.store===p.bestOffer.store ? 'best-row':''}">
+              <td><span class="store-tag"><span class="dot" style="background:${STORE_COLORS[o.store]}"></span>${esc(o.store)}</span>${o.store===p.bestOffer.store?'<span class="best-tag">Best price</span>':''}
+                ${o.couponText?`<div class="coupon-note">🏷️ ${esc(o.couponText)}</div>`:''}
+              </td>
+              <td><span class="tabular" style="font-weight:700;">${inr(o.price)}</span> <span class="card-strike tabular">${inr(o.originalPrice)}</span><br/><span class="card-discount" style="margin-top:3px; display:inline-block;">${o.discountPercent}% off</span></td>
+              <td>★ ${o.rating.toFixed(1)} <span style="color:var(--ink-faint); font-size:11.5px;">(${formatCount(o.reviewCount)})</span></td>
+              <td>${esc(o.deliveryText)}</td>
+              <td>${o.inStock ? '<span style="color:#1A8A4A; font-weight:700; font-size:12px;">In stock</span>' : '<span class="oos-tag">Out of stock</span>'}</td>
+              <td><a class="buy-btn" href="${esc(STORE_SEARCH_URL[o.store](p.name))}" target="_blank" rel="noopener noreferrer" style="${o.inStock?'':'opacity:.4; pointer-events:none;'} text-decoration:none; display:inline-block;">Buy on ${esc(o.store)}</a></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ${related.length ? `
+        <div class="similar-head">You might also compare</div>
+        <div class="similar-row">
+          ${related.map(r=>`
+            <div class="similar-card" data-open="${r.id}">
+              <div class="ic">${r.icon}</div>
+              <div class="t">${esc(r.name)}</div>
+              <div class="p tabular">${inr(r.minPrice)}</div>
+              <div class="r">★ ${r.avgRating.toFixed(1)} · ${r.offers.length} stores</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+  modal.querySelector('#closeDetailBtn').addEventListener('click', closeDetail);
+  modal.querySelector('#detailWishBtn').addEventListener('click', ()=>{ toggleWishlist(p.id); openDetail(p.id); });
+  modal.querySelector('#detailAlertBtn').addEventListener('click', ()=>{ setAlert(p.id); });
+  modal.querySelectorAll('[data-open]').forEach(c=>c.addEventListener('click', ()=>openDetail(c.dataset.open)));
+  document.getElementById('detailOverlay').classList.add('open');
+  renderRecentlyViewed();
+}
+function closeDetail(){ document.getElementById('detailOverlay').classList.remove('open'); }
+
+/* ==============================================================
+   RECENTLY VIEWED
+   ============================================================== */
+function renderRecentlyViewed(){
+  const slot = document.getElementById('recentSlot');
+  const items = state.recentlyViewed.map(id=>CATALOG.find(p=>p.id===id)).filter(Boolean);
+  if (!items.length){ slot.innerHTML=''; return; }
+  slot.innerHTML = `
+    <div class="recent-strip">
+      <div class="recent-strip-head">
+        <h4>Recently viewed</h4>
+        <button id="clearRecentBtn">Clear</button>
+      </div>
+      <div class="recent-row">
+        ${items.map(p=>`
+          <div class="recent-card" data-open="${p.id}">
+            <div class="ic">${p.icon}</div>
+            <div class="t">${esc(p.name)}</div>
+            <div class="p tabular">${inr(p.minPrice)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  slot.querySelectorAll('[data-open]').forEach(c=>c.addEventListener('click', ()=>openDetail(c.dataset.open)));
+  const clearBtn = slot.querySelector('#clearRecentBtn');
+  if (clearBtn) clearBtn.addEventListener('click', ()=>{ state.recentlyViewed=[]; saveList(LS_RECENT, []); renderRecentlyViewed(); });
+}
+
+/* ==============================================================
+   DARK MODE
+   ============================================================== */
+function applyTheme(){
+  if (state.theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+}
+function toggleTheme(){
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(LS_THEME, state.theme);
+  applyTheme();
+}
+
+/* ==============================================================
+   BUDGET MODE
+   ============================================================== */
+function renderBudgetBar(){
+  const slot = document.getElementById('budgetSlot');
+  const btn = document.getElementById('budgetModeBtn');
+  btn.classList.toggle('on', state.budgetMode);
+  if (!state.budgetMode){ slot.innerHTML=''; return; }
+  const within = state.budgetAmount ? CATALOG.filter(p=>p.minPrice<=state.budgetAmount).length : CATALOG.length;
+  slot.innerHTML = `
+    <div class="budget-bar">
+      <strong>💰 Budget mode</strong>
+      <div class="bb-input">
+        <span style="font-size:12.5px; color:var(--ink-soft);">Show products under ₹</span>
+        <input type="number" id="budgetAmountInput" placeholder="e.g. 30000" value="${state.budgetAmount || ''}" />
+      </div>
+      <span class="bb-note">${state.budgetAmount ? `${within} product${within!==1?'s':''} fit this budget — sorted for best overall value.` : 'Enter a budget to only see products you can actually afford.'}</span>
+      <button class="bb-close" id="budgetModeCloseBtn">Turn off</button>
+    </div>
+  `;
+  document.getElementById('budgetAmountInput').addEventListener('input', e=>{
+    state.budgetAmount = e.target.value === '' ? null : Number(e.target.value);
+    localStorage.setItem(LS_BUDGET, state.budgetAmount || '');
+    renderAll();
+  });
+  document.getElementById('budgetModeCloseBtn').addEventListener('click', ()=>{
+    state.budgetMode = false;
+    renderAll();
+  });
+}
+
+/* ==============================================================
+   PRICE ALERTS (localStorage)
+   ============================================================== */
+function setAlert(id){
+  const p = CATALOG.find(x=>x.id===id); if (!p) return;
+  const existing = state.alerts[id];
+  const suggested = existing || Math.round(p.minPrice*0.9);
+  const input = prompt(`Notify me when "${p.name}" drops to or below ₹:\n(Current best price: ${inr(p.minPrice)})`, suggested);
+  if (input === null) return;
+  if (input.trim() === ''){ delete state.alerts[id]; saveObj(LS_ALERTS, state.alerts); renderAll(); return; }
+  const target = Number(input);
+  if (!target || target <= 0){ alert('Please enter a valid target price.'); return; }
+  state.alerts[id] = target;
+  saveObj(LS_ALERTS, state.alerts);
+  renderAll();
+}
+function removeAlert(id){
+  delete state.alerts[id];
+  saveObj(LS_ALERTS, state.alerts);
+  renderAll();
+}
+function renderAlertsUI(){
+  const ids = Object.keys(state.alerts);
+  const countEl = document.getElementById('alertsCount');
+  const triggered = ids.filter(id=>{ const p = CATALOG.find(x=>x.id===id); return p && p.minPrice <= state.alerts[id]; });
+  countEl.textContent = ids.length;
+  countEl.style.background = triggered.length ? '#1A8A4A' : '';
+  const body = document.getElementById('alertsBody');
+  if (!ids.length){
+    body.innerHTML = `<div class="hint-empty"><span class="glyph">🔔</span>No price alerts yet.<br/>Tap the bell on any product to get notified when it drops.</div>`;
+    return;
+  }
+  body.innerHTML = ids.map(id=>{
+    const p = CATALOG.find(x=>x.id===id);
+    if (!p) return '';
+    const target = state.alerts[id];
+    const hit = p.minPrice <= target;
+    return `
+      <div class="alert-item ${hit?'hit':''}" data-id="${p.id}">
+        <div class="ic">${p.icon}</div>
+        <div class="body">
+          <div class="title">${esc(p.name)}</div>
+          <div class="sub">Target <b>${inr(target)}</b> · Now <b>${inr(p.minPrice)}</b> ${hit?'<span class="hit-tag">Target hit!</span>':''}</div>
+        </div>
+        <button class="rm" data-rm="${p.id}" title="Remove">✕</button>
+      </div>
+    `;
+  }).join('');
+  body.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); removeAlert(b.dataset.rm); }));
+  body.querySelectorAll('.alert-item').forEach(row=>row.addEventListener('click', ()=>{
+    document.getElementById('alertsDrawer').classList.remove('open');
+    document.getElementById('alertsOverlay').classList.remove('open');
+    openDetail(row.dataset.id);
+  }));
+}
+
+/* ==============================================================
+   RECENT SEARCHES (localStorage)
+   ============================================================== */
+function addRecentSearch(term){
+  term = (term||'').trim();
+  if (term.length < 2) return;
+  state.recentSearches = [term, ...state.recentSearches.filter(t=>t.toLowerCase()!==term.toLowerCase())].slice(0,8);
+  saveList(LS_SEARCHES, state.recentSearches);
+}
+function renderSearchSuggest(){
+  const box = document.getElementById('searchSuggest');
+  if (!state.recentSearches.length){ box.classList.remove('open'); box.innerHTML=''; return; }
+  box.innerHTML = `
+    <div class="ss-head"><span>Recent searches</span><button id="clearSearchesBtn">Clear</button></div>
+    ${state.recentSearches.map(t=>`<div class="ss-item" data-term="${esc(t)}">🕘 ${esc(t)}</div>`).join('')}
+  `;
+  box.querySelectorAll('[data-term]').forEach(it=>it.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    const term = it.dataset.term;
+    const input = document.getElementById('searchInput');
+    input.value = term;
+    state.query = term;
+    document.getElementById('searchClear').style.display = 'flex';
+    addRecentSearch(term);
+    box.classList.remove('open');
+    renderAll();
+  }));
+  const clearBtn = box.querySelector('#clearSearchesBtn');
+  if (clearBtn) clearBtn.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    state.recentSearches = [];
+    saveList(LS_SEARCHES, []);
+    box.classList.remove('open');
+    box.innerHTML='';
+  });
+}
+
+/* ==============================================================
+   WHAT SHOULD I BUY?
+   ============================================================== */
+const WSIB_LABELS = {price:'💸 Price', rating:'⭐ Rating', battery:'🔋 Battery', camera:'📷 Camera', performance:'⚡ Performance'};
+function recommendProducts(budget, category, priorities){
+  let candidates = CATALOG.filter(p=> category==='any' || p.category===category);
+  if (!candidates.length) return {items:[], withinBudget:true};
+  let pool = isFinite(budget) ? candidates.filter(p=>p.minPrice<=budget) : candidates;
+  let withinBudget = true;
+  if (!pool.length){ withinBudget=false; pool = [...candidates].sort((a,b)=>a.minPrice-b.minPrice).slice(0,12); }
+  const range = arr => ({min:Math.min(...arr), max:Math.max(...arr)});
+  const price = range(pool.map(p=>p.minPrice));
+  const rating = range(pool.map(p=>p.avgRating));
+  const battery = range(pool.map(p=>p.specs.battery));
+  const camera = range(pool.map(p=>p.specs.camera));
+  const performance = range(pool.map(p=>p.specs.performance));
+  const norm = (v, r, invert) => r.max===r.min ? 1 : (invert ? (r.max-v)/(r.max-r.min) : (v-r.min)/(r.max-r.min));
+  const scored = pool.map(p=>{
+    let sum = 0;
+    priorities.forEach(pr=>{
+      if (pr==='price') sum += norm(p.minPrice, price, true);
+      else if (pr==='rating') sum += norm(p.avgRating, rating, false);
+      else if (pr==='battery') sum += norm(p.specs.battery, battery, false);
+      else if (pr==='camera') sum += norm(p.specs.camera, camera, false);
+      else if (pr==='performance') sum += norm(p.specs.performance, performance, false);
+    });
+    return {...p, matchScore: Math.round((sum/priorities.length)*100)};
+  });
+  return {items: scored.sort((a,b)=>b.matchScore-a.matchScore).slice(0,3), withinBudget};
+}
+function renderWsibResult(budget, category, priorities){
+  const slot = document.getElementById('wsibResultSlot');
+  const {items, withinBudget} = recommendProducts(budget, category, priorities);
+  if (!items.length){
+    slot.innerHTML = `<div class="wsib-result"><p style="font-size:13px; color:var(--ink-faint);">No products found for that category yet. Try "Any category" or a different budget.</p></div>`;
+    return;
+  }
+  const [top, ...rest] = items;
+  const badgeVal = (p, pr) => pr==='price' ? inr(p.minPrice) : pr==='rating' ? `★ ${p.avgRating.toFixed(1)}` : (p.specs[pr] ? p.specs[pr]+'/10' : 'N/A');
+  slot.innerHTML = `
+    <div class="wsib-result">
+      <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:10px;">
+        ${withinBudget ? 'Best match for you' : `Nothing quite fits that budget — closest options below`}
+      </div>
+      <div class="wsib-pick" data-open="${top.id}">
+        <span class="match">${top.matchScore}% match</span>
+        <div class="ic">${top.icon}</div>
+        <div class="body">
+          <div class="name">${esc(top.name)}</div>
+          <div class="meta">${esc(top.brand)} · ${esc(top.category)} · ★ ${top.avgRating.toFixed(1)} · best on ${esc(top.bestOffer.store)}</div>
+          <div class="card-price-row" style="margin-top:2px;">
+            <span class="card-price tabular" style="font-size:18px;">${inr(top.minPrice)}</span>
+            <span class="card-discount">${top.maxDiscount}% off</span>
+          </div>
+          <div class="spec-badges">${priorities.map(pr=>`<span class="spec-badge">${WSIB_LABELS[pr].split(' ')[1]}: ${badgeVal(top,pr)}</span>`).join('')}</div>
+        </div>
+      </div>
+      ${rest.length ? `<div style="font-size:11.5px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; margin:14px 0 8px;">Also consider</div>` : ''}
+      ${rest.map(r=>`
+        <div class="wsib-alt" data-open="${r.id}">
+          <span class="ic">${r.icon}</span>
+          <span class="name">${esc(r.name)}</span>
+          <span class="tabular" style="font-weight:700;">${inr(r.minPrice)}</span>
+          <span style="color:var(--ink-faint);">${r.matchScore}% match</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  slot.querySelectorAll('[data-open]').forEach(elm=>elm.addEventListener('click', ()=>{ closeWSIB(); openDetail(elm.dataset.open); }));
+}
+function openWSIB(){
+  const modal = document.getElementById('wsibModal');
+  modal.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h2>What Should I Buy?</h2>
+        <p>Tell us your budget and what matters most — we'll match you with the best product.</p>
+      </div>
+      <button class="modal-close" id="closeWsibBtn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="wsib-field">
+        <label>Your budget (₹)</label>
+        <input type="number" id="wsibBudget" placeholder="e.g. 50000" />
+      </div>
+      <div class="wsib-field">
+        <label>Category (optional)</label>
+        <select id="wsibCategory">
+          <option value="any">Any category</option>
+          ${CATEGORIES.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="wsib-field">
+        <label>What matters most to you? (pick up to 3)</label>
+        <div class="chip-row" id="wsibPriorities">
+          ${Object.entries(WSIB_LABELS).map(([k,l])=>`<button type="button" class="priority-chip" data-p="${k}">${l}</button>`).join('')}
+        </div>
+      </div>
+      <button class="wsib-submit" id="wsibSubmitBtn">Find my match</button>
+      <div id="wsibResultSlot"></div>
+    </div>
+  `;
+  const chosen = new Set(['price','rating']);
+  modal.querySelectorAll('#wsibPriorities .priority-chip').forEach(b=>b.classList.toggle('active', chosen.has(b.dataset.p)));
+  modal.querySelector('#wsibPriorities').addEventListener('click', e=>{
+    const btn = e.target.closest('.priority-chip'); if (!btn) return;
+    const p = btn.dataset.p;
+    if (chosen.has(p)) chosen.delete(p);
+    else { if (chosen.size >= 3) return; chosen.add(p); }
+    btn.classList.toggle('active', chosen.has(p));
+  });
+  modal.querySelector('#closeWsibBtn').addEventListener('click', closeWSIB);
+  modal.querySelector('#wsibSubmitBtn').addEventListener('click', ()=>{
+    const budgetVal = Number(modal.querySelector('#wsibBudget').value);
+    const budget = budgetVal > 0 ? budgetVal : Infinity;
+    const category = modal.querySelector('#wsibCategory').value;
+    const priorities = chosen.size ? [...chosen] : ['price','rating'];
+    renderWsibResult(budget, category, priorities);
+  });
+  document.getElementById('wsibOverlay').classList.add('open');
+}
+function closeWSIB(){ document.getElementById('wsibOverlay').classList.remove('open'); }
+
+/* ==============================================================
+   MASTER RENDER
+   ============================================================== */
+function renderAll(){
+  const filtered = applyFilters(CATALOG);
+  const scoredFiltered = scoreProducts(filtered);
+  const sorted = sortProducts(scoredFiltered, state.sortKey);
+  const topPick = scoredFiltered.length ? [...scoredFiltered].sort((a,b)=>b.overallScore-a.overallScore)[0] : null;
+
+  renderBanner(scoredFiltered);
+  renderBudgetBar();
+  renderRecentlyViewed();
+  document.getElementById('resultCount').innerHTML = `<b>${sorted.length}</b> of ${CATALOG.length} products`;
+  renderGrid(sorted, topPick ? topPick.id : null);
+  renderActiveChips();
+  syncFilterChipStates();
+  renderWishlistUI();
+  renderCompareBar();
+  renderAlertsUI();
+}
+
+/* ==============================================================
+   WIRING: search, sort, drawers
+   ============================================================== */
+function wireGlobalControls(){
+  const searchInput = document.getElementById('searchInput');
+  const searchClear = document.getElementById('searchClear');
+  const searchSuggest = document.getElementById('searchSuggest');
+  searchInput.addEventListener('input', e=>{
+    state.query = e.target.value;
+    searchClear.style.display = state.query ? 'flex' : 'none';
+    searchSuggest.classList.remove('open');
+    renderAll();
+  });
+  searchInput.addEventListener('focus', ()=>{
+    if (!state.query && state.recentSearches.length){ renderSearchSuggest(); searchSuggest.classList.add('open'); }
+  });
+  searchInput.addEventListener('blur', ()=>{ setTimeout(()=>searchSuggest.classList.remove('open'), 150); });
+  searchInput.addEventListener('keydown', e=>{
+    if (e.key === 'Enter'){ addRecentSearch(e.target.value); searchSuggest.classList.remove('open'); }
+  });
+  searchClear.addEventListener('click', ()=>{ state.query=''; searchInput.value=''; searchClear.style.display='none'; renderAll(); });
+
+  document.getElementById('sortSelect').addEventListener('change', e=>{ state.sortKey = e.target.value; renderAll(); });
+
+  // Wishlist drawer
+  const wishDrawer = document.getElementById('wishDrawer');
+  const wishOverlay = document.getElementById('wishOverlay');
+  document.getElementById('wishlistBtn').addEventListener('click', ()=>{ wishDrawer.classList.add('open'); wishOverlay.classList.add('open'); });
+  document.getElementById('closeWishBtn').addEventListener('click', ()=>{ wishDrawer.classList.remove('open'); wishOverlay.classList.remove('open'); });
+  wishOverlay.addEventListener('click', ()=>{ wishDrawer.classList.remove('open'); wishOverlay.classList.remove('open'); });
+
+  // Price alerts drawer
+  const alertsDrawer = document.getElementById('alertsDrawer');
+  const alertsOverlay = document.getElementById('alertsOverlay');
+  document.getElementById('alertsBtn').addEventListener('click', ()=>{ alertsDrawer.classList.add('open'); alertsOverlay.classList.add('open'); });
+  document.getElementById('closeAlertsBtn').addEventListener('click', ()=>{ alertsDrawer.classList.remove('open'); alertsOverlay.classList.remove('open'); });
+  alertsOverlay.addEventListener('click', ()=>{ alertsDrawer.classList.remove('open'); alertsOverlay.classList.remove('open'); });
+
+  // Budget mode
+  document.getElementById('budgetModeBtn').addEventListener('click', ()=>{ state.budgetMode = !state.budgetMode; renderAll(); });
+
+  // What Should I Buy?
+  document.getElementById('wsibBtn').addEventListener('click', openWSIB);
+  const wsibOverlay = document.getElementById('wsibOverlay');
+  wsibOverlay.addEventListener('click', e=>{ if (e.target.id==='wsibOverlay') closeWSIB(); });
+
+  // Dark mode
+  document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+
+  // Compare
+  document.getElementById('openCompareBtn').addEventListener('click', openCompareModal);
+  document.getElementById('compareTopBtn').addEventListener('click', openCompareModal);
+  document.getElementById('clearCompareBtn').addEventListener('click', ()=>{ state.compare.clear(); saveIds(LS_COMPARE, state.compare); renderAll(); });
+  document.getElementById('compareOverlay').addEventListener('click', e=>{ if(e.target.id==='compareOverlay') closeCompareModal(); });
+
+  // Detail overlay
+  document.getElementById('detailOverlay').addEventListener('click', e=>{ if(e.target.id==='detailOverlay') closeDetail(); });
+
+  // ESC key closes any open overlay/drawer
+  document.addEventListener('keydown', e=>{
+    if (e.key !== 'Escape') return;
+    closeDetail(); closeCompareModal(); closeWSIB();
+    wishDrawer.classList.remove('open'); wishOverlay.classList.remove('open');
+    alertsDrawer.classList.remove('open'); alertsOverlay.classList.remove('open');
+    searchSuggest.classList.remove('open');
+    document.getElementById('filtersPanel').classList.remove('open');
+    document.getElementById('filtersScrim').classList.remove('open');
+  });
+
+  // Mobile filters drawer
+  const filtersPanel = document.getElementById('filtersPanel');
+  const filtersScrim = document.getElementById('filtersScrim');
+  document.getElementById('filtersToggleBtn').addEventListener('click', ()=>{ filtersPanel.classList.add('open'); filtersScrim.classList.add('open'); });
+  filtersScrim.addEventListener('click', ()=>{ filtersPanel.classList.remove('open'); filtersScrim.classList.remove('open'); });
+}
+
+/* ---------- init ---------- */
+applyTheme();
+buildFilterOptions();
+wireGlobalControls();
+renderAll();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
