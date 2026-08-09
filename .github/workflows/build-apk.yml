@@ -1,21 +1,19 @@
-```yaml
 name: Build APK
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
@@ -26,15 +24,8 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Check Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-
       - name: Restore signing keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android.keystore
-          ls -lh android.keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android.keystore
 
       - name: Build APK
         env:
@@ -43,21 +34,14 @@ jobs:
         run: |
           bubblewrap build \
             --skipPwaValidation \
-            --jdkPath="$JAVA_HOME" \
             --password="$BUBBLEWRAP_KEYSTORE_PASSWORD" \
             --keyPassword="$BUBBLEWRAP_KEY_PASSWORD"
-
-      - name: Find APK
-        run: |
-          echo "Searching for APK files..."
-          find . -name "*.apk" -type f -print
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: dealradar-apk
           path: |
-            **/*-signed.apk
-            **/*-unsigned-aligned.apk
-          if-no-files-found: error
-```
+            app-release-signed.apk
+            app-release-unsigned-aligned.apk
+          if-no-files-found: warn
