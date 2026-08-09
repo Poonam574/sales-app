@@ -26,15 +26,20 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
+      - name: Check Java
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
+
       - name: Restore signing keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > android.keystore
+          ls -lh android.keystore
 
       - name: Build APK
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           bubblewrap build \
             --skipPwaValidation \
@@ -42,12 +47,17 @@ jobs:
             --password="$BUBBLEWRAP_KEYSTORE_PASSWORD" \
             --keyPassword="$BUBBLEWRAP_KEY_PASSWORD"
 
+      - name: Find APK
+        run: |
+          echo "Searching for APK files..."
+          find . -name "*.apk" -type f -print
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: dealradar-apk
           path: |
-            app-release-signed.apk
-            app-release-unsigned-aligned.apk
-          if-no-files-found: warn
+            **/*-signed.apk
+            **/*-unsigned-aligned.apk
+          if-no-files-found: error
 ```
